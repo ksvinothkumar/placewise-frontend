@@ -1,3 +1,3 @@
-// invoices feature: pages, components and hooks live here once ported from the legacy client.
-// Import shared UI from @/components and data access from @/api. Never import another feature.
-export {};
+export { InvoicesPage } from './InvoicesPage';
+export { InvoiceViewPage } from './InvoiceViewPage';
+export { InvoiceDocument, amountInWords } from './InvoiceDocument';

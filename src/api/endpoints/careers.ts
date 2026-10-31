@@ -1,9 +1,23 @@
 import { http } from '../http';
 
-// PUBLIC endpoints: no auth header is needed, but the shared client sends it harmlessly when present.
-// TODO(port): open jobs + apply form when features/careers is ported.
+export interface CareerJob {
+  id: string;
+  title: string;
+  city: string;
+  remote?: boolean;
+  industry?: string;
+  expMin: number;
+  expMax: number;
+  skills: string[];
+  postedDays: number;
+  description?: string;
+}
+
+// PUBLIC endpoints (backend: /api/v1/public/jobs, legacy /api/public/jobs). No login; the client harmlessly sends the token when present.
 export const careersApi = {
-  base: '/careers',
-  jobs: <T = unknown>() => http.get<T>('/careers/jobs'),
-  job: <T = unknown>(id: string) => http.get<T>(`/careers/jobs/${id}`),
+  base: '/public/jobs',
+  jobs: () => http.get<CareerJob[]>('/public/jobs'),
+  job: (id: string) => http.get<CareerJob>(`/public/jobs/${id}`),
+  /** multipart: text fields + optional `resume` file; `website` is the honeypot (must stay empty for real people) */
+  apply: (id: string, form: FormData) => http.upload<{ ok?: boolean }>(`/public/jobs/${id}/apply`, form),
 };

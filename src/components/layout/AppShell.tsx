@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useSessionStore } from '@/stores/session.store';
 import { useUiStore } from '@/stores/ui.store';
+import { useChatToasts } from '@/realtime/useChatToasts';
 import CommandPalette from '../CommandPalette';
 import { PortalShell } from './PortalShell';
 import { Sidebar } from './Sidebar';
@@ -23,6 +24,7 @@ function StaffShell() {
   const paletteOpen = useUiStore((s) => s.paletteOpen);
   const { setPalette, togglePalette } = useUiStore.getState();
   const { counts } = useNavCounts();
+  useChatToasts(); // incoming-message toasts on every page, not only while Chat is open
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
