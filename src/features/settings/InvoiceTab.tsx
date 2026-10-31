@@ -3,6 +3,8 @@ import { useState, type ChangeEvent } from 'react';
 import { settingsApi, type CompanyInfo, type InvoiceTemplate } from '@/api/endpoints/settings';
 import { errorMessage } from '@/api/errors';
 import { useApiMutation } from '@/api/hooks';
+import { InvoiceDocument } from '@/components/InvoiceDocument';
+import type { Invoice } from '@/api/endpoints/invoices';
 import { Field } from '@/components/ui/Layout';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { toast } from '@/stores/ui.store';
@@ -38,6 +40,20 @@ export function InvoiceTab() {
   const upper = (k: keyof CompanyInfo) => (e: ChangeEvent<HTMLInputElement>) => setCo({ ...co, [k]: e.target.value.toUpperCase() });
   const t = (k: keyof InvoiceTemplate) => (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
     setTp({ ...tp, [k]: e.target instanceof HTMLInputElement && e.target.type === 'checkbox' ? e.target.checked : e.target.value });
+
+  // sample invoice rendered from the unsaved drafts, so the preview updates as you type
+  const gst = +tp.gstPct || 0;
+  const subtotal = 266560;
+  const half = Math.round((subtotal * gst) / 200);
+  const day = 864e5;
+  const sample = {
+    number: `${tp.taxPrefix || 'INV'}/2026-27/0042`, docType: 'tax', status: 'draft', rawStatus: 'draft', clientName: 'Northwind Fintech', candidateName: 'Aarav Mehta', jobTitle: 'Senior Backend Engineer',
+    subtotal, gstPct: gst, gst: half * 2, cgst: half, sgst: half, igst: 0, total: subtotal + half * 2, taxType: 'cgst_sgst', sacCode: tp.sacCode, placeOfSupply: co.state, daysOverdue: 0,
+    issueDate: new Date().toISOString(), dueDate: new Date(Date.now() + 30 * day).toISOString(), guaranteeDays: 90, guaranteeEnds: new Date(Date.now() + 90 * day).toISOString(), replacement: 'none',
+    supplier: { name: co.legalName || co.name, address: [co.address, co.city].filter(Boolean).join(', '), state: co.state, gstin: co.gstin, pan: co.pan, bankName: co.bankName, accountName: co.accountName, accountNumber: co.accountNumber, ifsc: co.ifsc },
+    billTo: { name: 'Northwind Fintech', address: 'Koramangala, Bengaluru', state: co.state || 'Karnataka', gstin: '29AAACN1234A1Z5', contact: 'Priya Nair' },
+    template: tp,
+  } as unknown as Invoice;
 
   return (
     <div style={{ display: 'grid', gap: 18 }}>
@@ -107,6 +123,12 @@ export function InvoiceTab() {
               {saveTp.isPending ? <Loader2 size={15} className="spin" /> : <Save size={15} />}Save template
             </button>
           </div>
+        </div>
+      </div>
+      <div className="card">
+        <div className="card-h"><h3>Live preview</h3><small>updates as you type. Nothing is saved until you press Save.</small></div>
+        <div className="card-b" style={{ background: 'var(--surface2)' }}>
+          <div style={{ zoom: 0.8 }}><InvoiceDocument inv={sample} /></div>
         </div>
       </div>
     </div>

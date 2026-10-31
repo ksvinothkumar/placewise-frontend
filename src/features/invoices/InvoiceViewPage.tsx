@@ -12,7 +12,7 @@ import { useCan } from '@/lib/permissions';
 import { useSessionStore } from '@/stores/session.store';
 import { toast } from '@/stores/ui.store';
 import { InvBadge } from './InvBadge';
-import { InvoiceDocument } from './InvoiceDocument';
+import { InvoiceDocument } from '@/components/InvoiceDocument';
 import { useInvoice } from './useInvoices';
 
 export function InvoiceViewPage() {
