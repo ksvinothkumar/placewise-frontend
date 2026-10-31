@@ -7,6 +7,7 @@ import { BarLine, HBars, VBars } from '@/components/charts';
 import { Kpi, PageHead } from '@/components/ui/Layout';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { inr, stageColor } from '@/lib/format';
+import { ReportDrill, type DrillTarget } from './ReportDrill';
 
 const RANGES: [string, string][] = [
   ['30', 'Last 30 days'],
@@ -26,6 +27,7 @@ export function downloadCsv(name: string, rows: (string | number | null | undefi
 
 export function ReportsPage() {
   const [range, setRange] = useState('90');
+  const [drill, setDrill] = useState<DrillTarget | null>(null);
   const from = useMemo(() => (range === 'all' ? '2000-01-01' : new Date(Date.now() - +range * 864e5).toISOString()), [range]);
   const { data: d } = useQuery({ queryKey: [...queryKeys.reports.all, from.slice(0, 10)], queryFn: () => reportsApi.overview(from) });
   if (!d)
@@ -52,11 +54,11 @@ export function ReportsPage() {
         </select>
       </PageHead>
       <div className="grid kpis">
-        <Kpi icon={BadgeCheck} label="Placements" value={k.placements} sub="in this period" tone="good" />
-        <Kpi icon={Send} label="Submissions" value={k.submissions} sub="candidates sent to clients" />
-        <Kpi icon={Timer} label="Avg time to fill" value={k.avgDaysToFill != null ? k.avgDaysToFill + 'd' : '—'} sub="job opened to placed" tone="warn" />
-        <Kpi icon={Percent} label="Offer acceptance" value={k.offerAcceptRate != null ? k.offerAcceptRate + '%' : '—'} sub="of answered offers" tone="info" />
-        {money && <Kpi icon={TrendingUp} label="Fees earned" value={inr(k.revenue)} sub="before GST" tone="good" />}
+        <Kpi icon={BadgeCheck} label="Placements" value={k.placements} sub="in this period" tone="good" onClick={() => setDrill({ kind: 'placements' })} />
+        <Kpi icon={Send} label="Submissions" value={k.submissions} sub="candidates sent to clients" onClick={() => setDrill({ kind: 'submissions' })} />
+        <Kpi icon={Timer} label="Avg time to fill" value={k.avgDaysToFill != null ? k.avgDaysToFill + 'd' : '—'} sub="job opened to placed" tone="warn" onClick={() => setDrill({ kind: 'ttf' })} />
+        <Kpi icon={Percent} label="Offer acceptance" value={k.offerAcceptRate != null ? k.offerAcceptRate + '%' : '—'} sub="of answered offers" tone="info" onClick={() => setDrill({ kind: 'offers' })} />
+        {money && <Kpi icon={TrendingUp} label="Fees earned" value={inr(k.revenue)} sub="before GST" tone="good" onClick={() => setDrill({ kind: 'revenue' })} />}
       </div>
 
       <div className="grid cols-2" style={{ marginTop: 18 }}>
@@ -66,7 +68,7 @@ export function ReportsPage() {
             <small>applications created in period</small>
           </div>
           <div className="card-b" style={{ height: 300 }}>
-            <HBars data={d.funnel.map((f) => ({ label: f.stage, value: f.count, color: stageColor(f.stage), hint: `${f.count}${f.conversion != null ? ` (${f.conversion}% of previous stage)` : ''}` }))} />
+            <HBars onSelect={(b) => setDrill({ kind: 'funnel', arg: b.label })} data={d.funnel.map((f) => ({ label: f.stage, value: f.count, color: stageColor(f.stage), hint: `${f.count}${f.conversion != null ? ` (${f.conversion}% of previous stage)` : ''}` }))} />
           </div>
         </div>
         <div className="card">
@@ -75,7 +77,7 @@ export function ReportsPage() {
             <small>last 6 months</small>
           </div>
           <div className="card-b" style={{ height: 300 }}>
-            <BarLine data={d.monthly.map((m) => ({ label: m.month, bar: m.placements, line: m.avgDaysToFill }))} barName="Placements" lineName="Avg days to fill" />
+            <BarLine onSelect={(i) => setDrill({ kind: 'month', arg: String(i) })} data={d.monthly.map((m) => ({ label: m.month, bar: m.placements, line: m.avgDaysToFill }))} barName="Placements" lineName="Avg days to fill" />
           </div>
         </div>
       </div>
@@ -119,7 +121,7 @@ export function ReportsPage() {
           </thead>
           <tbody>
             {d.recruiters.map((r, i) => (
-              <tr key={r.id || 'none'}>
+              <tr key={r.id || 'none'} className="click" tabIndex={0} title="Click to see their candidates" onClick={() => setDrill({ kind: 'recruiter', arg: r.id || 'none' })} onKeyDown={(e) => { if (e.key === 'Enter') setDrill({ kind: 'recruiter', arg: r.id || 'none' }); }}>
                 <td>
                   <b>
                     {i === 0 && r.placements > 0 && '🏆 '}
@@ -189,7 +191,7 @@ export function ReportsPage() {
             </thead>
             <tbody>
               {d.sources.map((s) => (
-                <tr key={s.source}>
+                <tr key={s.source} className="click" tabIndex={0} title="Click to see these candidates" onClick={() => setDrill({ kind: 'source', arg: s.source })} onKeyDown={(e) => { if (e.key === 'Enter') setDrill({ kind: 'source', arg: s.source }); }}>
                   <td>
                     <b>{s.source}</b>
                   </td>
@@ -210,7 +212,7 @@ export function ReportsPage() {
               <h3>Open jobs by age</h3>
             </div>
             <div className="card-b" style={{ height: 180 }}>
-              <VBars data={d.jobAging.map((b, i) => ({ label: b.bucket, value: b.count, color: AGE_COLORS[i] ?? '#64748b' }))} height={160} />
+              <VBars onSelect={(b) => setDrill({ kind: 'jobage', arg: b.label })} data={d.jobAging.map((b, i) => ({ label: b.bucket, value: b.count, color: AGE_COLORS[i] ?? '#64748b' }))} height={160} />
             </div>
           </div>
           {d.revenueByClient && (
@@ -241,6 +243,7 @@ export function ReportsPage() {
           )}
         </div>
       </div>
+      {drill && <ReportDrill target={drill} from={from} onClose={() => setDrill(null)} />}
     </>
   );
 }

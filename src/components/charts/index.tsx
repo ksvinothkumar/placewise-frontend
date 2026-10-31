@@ -89,12 +89,16 @@ export function Donut({ data, colors, centre, size = 200, onSelect }: { data: Sl
 }
 
 /** Vertical bars with a count on top (job ageing). */
-export function VBars({ data, height = 140 }: { data: BarDatum[]; height?: number }) {
+export function VBars({ data, height = 140, onSelect }: { data: BarDatum[]; height?: number; onSelect?: (d: BarDatum) => void }) {
   const max = Math.max(1, ...data.map((d) => d.value));
   return (
     <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-around', height, gap: 12 }}>
       {data.map((d) => (
-        <div key={d.label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, maxWidth: 80 }}>
+        <div
+          key={d.label}
+          style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, maxWidth: 80, cursor: onSelect ? 'pointer' : undefined }}
+          {...(onSelect ? { role: 'button', tabIndex: 0, 'aria-label': `${d.label}: ${d.value}`, onClick: () => onSelect(d), onKeyDown: (e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(d); } } } : {})}
+        >
           <span style={{ fontSize: 12, color: 'var(--text2)' }}>{d.value}</span>
           <div title={`${d.label}: ${d.value}`} style={{ width: '100%', height: Math.max(3, (d.value / max) * (height - 40)), background: d.color, borderRadius: '6px 6px 0 0' }} />
           <span style={{ fontSize: 12, color: 'var(--text2)' }}>{d.label}</span>
@@ -111,7 +115,7 @@ export interface ComboDatum {
 }
 
 /** Bars (left axis) with a line on a second axis (right axis, days). */
-export function BarLine({ data, barName, lineName, height = 260 }: { data: ComboDatum[]; barName: string; lineName: string; height?: number }) {
+export function BarLine({ data, barName, lineName, height = 260, onSelect }: { data: ComboDatum[]; barName: string; lineName: string; height?: number; onSelect?: (index: number) => void }) {
   const W = 520;
   const pad = { l: 30, r: 34, t: 14, b: 26 };
   const innerW = W - pad.l - pad.r;
@@ -132,7 +136,12 @@ export function BarLine({ data, barName, lineName, height = 260 }: { data: Combo
       {data.map((d, i) => {
         const h = (d.bar / maxBar) * innerH;
         return (
-          <g key={d.label}>
+          <g
+            key={d.label}
+            style={{ cursor: onSelect ? 'pointer' : undefined }}
+            {...(onSelect ? { role: 'button', tabIndex: 0, 'aria-label': `${d.label}: ${d.bar} ${barName.toLowerCase()}`, onClick: () => onSelect(i), onKeyDown: (e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(i); } } } : {})}
+          >
+            {onSelect && <rect x={x(i) - step / 2} y={pad.t} width={step} height={innerH + 20} fill="transparent" />}
             <rect x={x(i) - 15} y={pad.t + innerH - h} width={30} height={h} rx={6} fill="#4f46e5">
               <title>{`${d.label}: ${d.bar} ${barName.toLowerCase()}`}</title>
             </rect>

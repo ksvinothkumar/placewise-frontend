@@ -37,7 +37,16 @@ export interface ReportSendResult {
   to?: string;
 }
 
+export type DrillKind = 'placements' | 'ttf' | 'revenue' | 'submissions' | 'offers' | 'funnel' | 'month' | 'recruiter' | 'source' | 'jobage';
+export interface DrillData {
+  title: string;
+  summary: string;
+  columns: { label: string; type: 'text' | 'date' | 'money' | 'days' | 'stage' }[];
+  rows: { go?: string; cells: (string | number | null)[] }[];
+}
+
 export const reportsApi = {
+  drill: (kind: DrillKind, arg: string | undefined, from: string) => http.get<DrillData>('/reports/drill', { kind, ...(arg ? { arg } : {}), from }),
   base: '/reports',
   get: <T = unknown>(path = '', query?: Record<string, string>) => http.get<T>(`/reports${path}`, query),
   overview: (from: string) => http.get<ReportData>('/reports', { from }),
