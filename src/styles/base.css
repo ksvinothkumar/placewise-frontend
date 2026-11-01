@@ -165,3 +165,5 @@ code{font:12.5px ui-monospace,Menlo,monospace;background:var(--surface2);border:
 .sidebar .nav::-webkit-scrollbar{width:6px}.sidebar .nav::-webkit-scrollbar-thumb{background:#2a3358;border-radius:6px}.sidebar .nav::-webkit-scrollbar-thumb:hover{background:#3a4676}
 .sidebar .brand,.sidebar .side-card{flex:none}.sidebar .side-card{margin-top:12px}
 .app.collapsed .sidebar .nav{scrollbar-width:none}.app.collapsed .sidebar .nav::-webkit-scrollbar{display:none}
+.nav-tip{position:fixed;transform:translateY(-50%);z-index:80;pointer-events:none;background:#0b1020;color:#fff;border:1px solid #2a3358;border-radius:8px;padding:6px 11px;font-size:13px;font-weight:600;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.nav-tip::before{content:'';position:absolute;left:-5px;top:50%;width:8px;height:8px;background:#0b1020;border-left:1px solid #2a3358;border-bottom:1px solid #2a3358;transform:translateY(-50%) rotate(45deg)}
