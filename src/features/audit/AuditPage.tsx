@@ -32,8 +32,8 @@ export function AuditPage() {
 
   const csv = () =>
     downloadCsv('audit-log.csv', [
-      ['Time', 'User', 'Role', 'Action', 'Entity', 'ID', 'Path', 'Status', 'IP'],
-      ...(data?.items ?? []).map((a) => [a.createdAt, a.userName, a.role, a.action, a.entity, a.entityId, a.path, a.status, a.ip]),
+      ['Time', 'User', 'Role', 'Action', 'Entity', 'ID', 'Path', 'Status', 'IP', 'Browser', 'OS', 'Device', 'Location'],
+      ...(data?.items ?? []).map((a) => [a.createdAt, a.userName, a.role, a.action, a.entity, a.entityId, a.path, a.status, a.ip, a.browser, a.os, a.device, a.location]),
     ]);
 
   return (
@@ -45,7 +45,7 @@ export function AuditPage() {
         <div className="toolbar">
           <div className="search">
             <Search size={16} />
-            <input className="input" placeholder="Search user, path…" aria-label="Search audit log" value={f.q} onChange={(e) => setF({ ...f, q: e.target.value, page: 1 })} />
+            <input className="input" placeholder="Search user, path, browser, location…" aria-label="Search audit log" value={f.q} onChange={(e) => setF({ ...f, q: e.target.value, page: 1 })} />
           </div>
           <select className="select" aria-label="Area" value={f.entity} onChange={(e) => setF({ ...f, entity: e.target.value, page: 1 })}>
             <option value="">All areas</option>
@@ -57,7 +57,7 @@ export function AuditPage() {
           <Skeleton rows={8} />
         ) : data?.items?.length ? (
           <table className="table">
-            <thead><tr><th>When</th><th>User</th><th>Action</th><th>Area</th><th>Path</th><th>Result</th></tr></thead>
+            <thead><tr><th>When</th><th>User</th><th>Action</th><th>Area</th><th>Path</th><th>Browser</th><th>Location</th><th>Result</th></tr></thead>
             <tbody>
               {data.items.map((a) => (
                 <tr key={a.id}>
@@ -66,6 +66,10 @@ export function AuditPage() {
                   <td><code>{a.action}</code></td>
                   <td>{a.entity}</td>
                   <td style={{ color: 'var(--muted)', fontSize: 12.5, maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={a.path}>{a.path}</td>
+                  <td style={{ whiteSpace: 'nowrap' }} title={a.ip}>
+                    {a.browser ? <>{a.browser}<div style={{ color: 'var(--muted)', fontSize: 12 }}>{[a.os, a.device].filter(Boolean).join(' · ')}</div></> : <span style={{ color: 'var(--muted)' }}>—</span>}
+                  </td>
+                  <td style={{ whiteSpace: 'nowrap' }} title={a.ip}>{a.location || <span style={{ color: 'var(--muted)' }}>—</span>}</td>
                   <td><span className={'badge ' + (a.status >= 400 ? 'bad' : 'good')}>{a.status}</span></td>
                 </tr>
               ))}

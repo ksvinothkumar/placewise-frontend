@@ -11,6 +11,10 @@ export interface AuditEntry {
   path?: string;
   status: number;
   ip?: string;
+  browser?: string;
+  os?: string;
+  device?: string;
+  location?: string;
 }
 export interface AuditPage {
   items: AuditEntry[];
