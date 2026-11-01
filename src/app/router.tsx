@@ -21,6 +21,7 @@ export const routes: RouteObject[] = [
   {
     element: <PublicHeader />,
     children: [
+      { path: '/career', element: <Navigate to="/careers" replace /> }, // short link used by the marketing site
       { path: '/careers', ...page(() => import('@/pages/CareersPage')) },
       { path: '/careers/:id', ...page(() => import('@/pages/CareerJobPage')) },
     ],
