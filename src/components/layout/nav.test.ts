@@ -9,6 +9,6 @@ describe('visibleGroups', () => {
     expect(groups.map(([g]) => g)).toEqual(['Recruit', 'Workspace']);
   });
   it('shows everything to a user with every permission', () => {
-    expect(visibleGroups(() => true).flatMap(([, i]) => i)).toHaveLength(18);
+    expect(visibleGroups(() => true).flatMap(([, i]) => i)).toHaveLength(19);
   });
 });

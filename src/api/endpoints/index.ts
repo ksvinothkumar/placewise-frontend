@@ -16,5 +16,6 @@ export * from './settings';
 export * from './webhooks';
 export * from './reports';
 export * from './audit';
+export * from './registrations';
 export * from './careers';
 export * from './chat';

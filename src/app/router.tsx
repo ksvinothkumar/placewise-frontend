@@ -56,6 +56,7 @@ export const routes: RouteObject[] = [
             { path: 'invoices', ...page(() => import('@/pages/InvoicesPage')) },
             { path: 'invoices/:id', ...page(() => import('@/pages/InvoiceViewPage')) },
           ]),
+          needs('registrations:manage', [{ path: 'registrations', ...page(() => import('@/pages/RegistrationsPage')) }]),
           needs('audit:view', [{ path: 'audit', ...page(() => import('@/pages/AuditPage')) }]),
           needs('crm:view', [
             { path: 'crm', ...page(() => import('@/pages/CrmPage')) },
