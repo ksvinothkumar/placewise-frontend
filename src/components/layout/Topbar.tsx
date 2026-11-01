@@ -1,23 +1,26 @@
-import { Moon, PanelLeftClose, PanelLeftOpen, Search, Sun } from 'lucide-react';
+import { Menu, Moon, PanelLeftClose, PanelLeftOpen, Search, Sun } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
+import { useIsMobileNav } from '@/lib/useMediaQuery';
 import { useUiStore } from '@/stores/ui.store';
 import Notifications from '../Notifications';
 import { TITLES } from './nav';
 import { UserMenu } from './UserMenu';
 
 export function Topbar() {
-  const { navCollapsed, toggleNav, theme, toggleTheme, setPalette } = useUiStore();
+  const { navCollapsed, mobileNavOpen, toggleNav, setMobileNav, theme, toggleTheme, setPalette } = useUiStore();
+  const mobile = useIsMobileNav();
   const loc = useLocation();
   const [, section, sub] = loc.pathname.split('/');
   return (
     <header className="topbar">
       <button
         className="iconbtn"
-        onClick={toggleNav}
-        aria-label={navCollapsed ? 'Open menu' : 'Close menu'}
-        title={navCollapsed ? 'Open menu' : 'Close menu'}
+        onClick={() => (mobile ? setMobileNav(!mobileNavOpen) : toggleNav())}
+        aria-label={mobile ? 'Open menu' : navCollapsed ? 'Open menu' : 'Close menu'}
+        aria-expanded={mobile ? mobileNavOpen : !navCollapsed}
+        title={mobile || navCollapsed ? 'Open menu' : 'Close menu'}
       >
-        {navCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+        {mobile ? <Menu size={19} /> : navCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
       </button>
       <div className="crumb">
         {TITLES[section ?? ''] || 'Dashboard'}

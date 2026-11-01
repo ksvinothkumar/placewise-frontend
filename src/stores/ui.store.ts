@@ -18,10 +18,13 @@ const initialTheme = (): Theme => {
 interface UiState {
   theme: Theme;
   navCollapsed: boolean;
+  /** Slide-in drawer on narrow screens (the fixed sidebar is hidden there). */
+  mobileNavOpen: boolean;
   paletteOpen: boolean;
   toasts: Toast[];
   toggleTheme: () => void;
   toggleNav: () => void;
+  setMobileNav: (open: boolean) => void;
   setPalette: (open: boolean) => void;
   togglePalette: () => void;
   toast: (msg: string, type?: ToastKind) => void;
@@ -34,6 +37,7 @@ let toastId = 0;
 export const useUiStore = create<UiState>((set, get) => ({
   theme: initialTheme(),
   navCollapsed: safeStorage.get('pw.nav') === '1',
+  mobileNavOpen: false,
   paletteOpen: false,
   toasts: [],
   toggleTheme: () =>
@@ -47,6 +51,7 @@ export const useUiStore = create<UiState>((set, get) => ({
       safeStorage.set('pw.nav', s.navCollapsed ? '0' : '1');
       return { navCollapsed: !s.navCollapsed };
     }),
+  setMobileNav: (mobileNavOpen) => set({ mobileNavOpen }),
   setPalette: (paletteOpen) => set({ paletteOpen }),
   togglePalette: () => set((s) => ({ paletteOpen: !s.paletteOpen })),
   toast: (msg, type = 'ok') => {
