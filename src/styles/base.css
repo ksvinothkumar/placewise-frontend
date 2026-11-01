@@ -160,3 +160,8 @@ code{font:12.5px ui-monospace,Menlo,monospace;background:var(--surface2);border:
 .app.nav-open .sidebar{transform:none;box-shadow:0 0 40px rgba(0,0,0,.45)}
 .app.nav-open .nav-backdrop{display:block;position:fixed;inset:0;background:rgba(8,12,24,.5);z-index:55}
 }
+/* Sidebar: the logo and the AI card stay put, the menu between them scrolls when it is taller than the screen */
+.sidebar .nav{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;margin-right:-8px;padding-right:8px;scrollbar-width:thin;scrollbar-color:#2a3358 transparent}
+.sidebar .nav::-webkit-scrollbar{width:6px}.sidebar .nav::-webkit-scrollbar-thumb{background:#2a3358;border-radius:6px}.sidebar .nav::-webkit-scrollbar-thumb:hover{background:#3a4676}
+.sidebar .brand,.sidebar .side-card{flex:none}.sidebar .side-card{margin-top:12px}
+.app.collapsed .sidebar .nav{scrollbar-width:none}.app.collapsed .sidebar .nav::-webkit-scrollbar{display:none}
