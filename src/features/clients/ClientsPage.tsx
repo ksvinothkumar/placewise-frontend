@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import type { Client } from '@/api/endpoints/clients';
 import { useClients } from '@/api/queries/jobs';
 import { ClientForm } from '@/components/forms';
-import { Avatar, PageHead, Skeleton } from '@/components/ui';
+import { ClientLogo, PageHead, Skeleton } from '@/components/ui';
 import { money } from '@/lib/format';
 import { useCan } from '@/lib/permissions';
 
@@ -33,9 +33,9 @@ export function ClientsPage() {
             <div className="card" key={c.id}>
               <div className="card-b">
                 <div className="who">
-                  <Avatar name={c.name} size={44} />
+                  <ClientLogo name={c.name} logo={c.logo} size={44} />
                   <div style={{ flex: 1 }}>
-                    <b style={{ fontSize: 15 }}>{c.name}</b>
+                    <Link to={'/clients/' + c.id} style={{ fontSize: 15, fontWeight: 600, color: 'inherit' }}>{c.name}</Link>
                     <span>
                       {c.industry} · {c.city}
                     </span>
@@ -94,6 +94,9 @@ export function ClientsPage() {
                   )}
                 </div>
                 <div style={{ marginTop: 12, display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <Link className="btn sm" to={'/clients/' + c.id}>
+                    Profile
+                  </Link>
                   <Link className="btn sm" to={'/clients/' + c.id + '/report'} style={{ marginRight: 6 }}>
                     Weekly report
                   </Link>

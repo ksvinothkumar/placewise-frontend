@@ -2,7 +2,9 @@ import { useState, type ChangeEvent } from 'react';
 import { clientsApi, type Client } from '@/api/endpoints/clients';
 import { useStates } from '@/api/queries/jobs';
 import { queryKeys } from '@/api/queryKeys';
-import { Field, Modal } from '@/components/ui';
+import { ClientLogo, Field, Modal } from '@/components/ui';
+import { imageToLogo } from '@/lib/logo';
+import { toast } from '@/stores/ui.store';
 import { FormFoot } from './FormFoot';
 import { useSave } from './useSave';
 
@@ -13,6 +15,9 @@ export function ClientForm({ client, onClose }: { client?: Client; onClose: () =
     name: client?.name || '',
     industry: client?.industry || '',
     city: client?.city || 'Bengaluru',
+    logo: client?.logo || '',
+    website: client?.website || '',
+    about: client?.about || '',
     contact: client?.contact || '',
     email: client?.email || '',
     feePct: client?.feePct ?? 8.33,
@@ -45,12 +50,49 @@ export function ClientForm({ client, onClose }: { client?: Client; onClose: () =
       <Field label="Company name">
         <input className="input" autoFocus value={v.name} onChange={set('name')} />
       </Field>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, margin: '4px 0 14px' }}>
+        <ClientLogo name={v.name} logo={v.logo} size={64} />
+        <div>
+          <label className="btn sm" style={{ cursor: 'pointer' }}>
+            {v.logo ? 'Change logo' : 'Upload logo'}
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              aria-label="Company logo"
+              hidden
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                e.target.value = '';
+                if (!file) return;
+                try {
+                  const logo = await imageToLogo(file);
+                  setV((s) => ({ ...s, logo }));
+                } catch (err) {
+                  toast(err instanceof Error ? err.message : 'Could not read that image', 'error');
+                }
+              }}
+            />
+          </label>
+          {v.logo && (
+            <button type="button" className="btn sm" style={{ marginLeft: 8 }} onClick={() => setV((s) => ({ ...s, logo: '' }))}>
+              Remove
+            </button>
+          )}
+          <div style={{ color: 'var(--muted)', fontSize: 12, marginTop: 6 }}>PNG, JPEG or WebP. Resized automatically.</div>
+        </div>
+      </div>
       <div className="f2">
+        <Field label="Website">
+          <input className="input" placeholder="acme.com" value={v.website} onChange={set('website')} />
+        </Field>
         <Field label="Industry">
           <input className="input" value={v.industry} onChange={set('industry')} />
         </Field>
         <Field label="City">
           <input className="input" value={v.city} onChange={set('city')} />
+        </Field>
+        <Field label="About the company">
+          <input className="input" maxLength={500} value={v.about} onChange={set('about')} />
         </Field>
         <Field label="Contact person">
           <input className="input" value={v.contact} onChange={set('contact')} />

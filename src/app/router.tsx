@@ -42,6 +42,7 @@ export const routes: RouteObject[] = [
           { path: 'pipeline', ...page(() => import('@/pages/PipelinePage')) },
           { path: 'interviews', ...page(() => import('@/pages/InterviewsPage')) },
           { path: 'clients', ...page(() => import('@/pages/ClientsPage')) },
+          { path: 'clients/:id', ...page(() => import('@/pages/ClientProfilePage')) },
           { path: 'clients/:id/report', ...page(() => import('@/pages/ClientReportPage')) },
           { path: 'portal', ...page(() => import('@/pages/PortalPage')) },
           { path: 'portal/jobs/:id', ...page(() => import('@/pages/PortalJobPage')) },

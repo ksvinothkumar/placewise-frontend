@@ -1,6 +1,7 @@
 export * from './Avatar';
 export * from './Badges';
 export * from './Button';
+export * from './ClientLogo';
 export * from './EmptyState';
 export * from './Input';
 export * from './Layout';
