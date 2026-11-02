@@ -16,6 +16,7 @@ import {
   Radar,
   ScrollText,
   Settings,
+  StickyNote,
   ShieldCheck,
   Users,
 } from 'lucide-react';
@@ -56,6 +57,7 @@ export const GROUPS: readonly (readonly [string, readonly NavItem[]])[] = [
     'Workspace',
     [
       { to: '/chat', icon: MessageSquare, label: 'Chat' },
+      { to: '/notes', icon: StickyNote, label: 'Notes' },
       { to: '/attendance', icon: CalendarCheck, label: 'Attendance', perm: 'attendance:self' },
       { to: '/users', icon: ShieldCheck, label: 'Team', perm: 'users:manage' },
       { to: '/registrations', icon: ClipboardCheck, label: 'Registrations', perm: 'registrations:manage' },
@@ -76,6 +78,7 @@ export const TITLES: Record<string, string> = {
   integrations: 'Integrations',
   reports: 'Reports',
   tasks: 'Tasks',
+  notes: 'Notes',
   invoices: 'Invoices',
   audit: 'Audit log',
   registrations: 'Registrations',

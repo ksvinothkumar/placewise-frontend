@@ -39,6 +39,7 @@ export const queryKeys = {
   reports: { all: ['reports'] as const },
   audit: { all: ['audit'] as const },
   registrations: { all: ['registrations'] as const },
+  notebook: { all: ['notebook'] as const },
   careers: { all: ['careers'] as const, jobs: ['careers', 'jobs'] as const, job: (id: string) => ['careers', 'job', id] as const },
   portal: { all: ['portal'] as const },
 };

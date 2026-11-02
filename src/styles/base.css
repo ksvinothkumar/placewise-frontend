@@ -167,3 +167,13 @@ code{font:12.5px ui-monospace,Menlo,monospace;background:var(--surface2);border:
 .app.collapsed .sidebar .nav{scrollbar-width:none}.app.collapsed .sidebar .nav::-webkit-scrollbar{display:none}
 .nav-tip{position:fixed;transform:translateY(-50%);z-index:80;pointer-events:none;background:#0b1020;color:#fff;border:1px solid #2a3358;border-radius:8px;padding:6px 11px;font-size:13px;font-weight:600;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.35)}
 .nav-tip::before{content:'';position:absolute;left:-5px;top:50%;width:8px;height:8px;background:#0b1020;border-left:1px solid #2a3358;border-bottom:1px solid #2a3358;transform:translateY(-50%) rotate(45deg)}
+/* notes */
+.notes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
+.note-card{--n:#fef3c7;--nb:#f5dd8a;text-align:left;font:inherit;color:#1f2937;cursor:pointer;display:flex;flex-direction:column;gap:8px;min-height:150px;padding:14px 16px;border-radius:14px;background:var(--n);border:1px solid var(--nb);transition:transform .15s,box-shadow .15s}
+.note-card:hover{transform:translateY(-2px);box-shadow:0 10px 26px -12px rgba(0,0,0,.35)}
+.note-card .note-top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.note-card b{font-size:15px;line-height:1.3}
+.note-card p{margin:0;flex:1;font-size:13.5px;line-height:1.5;color:#374151;white-space:pre-wrap;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
+.note-foot{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:#4b5563}.note-shared{display:inline-flex;gap:4px;align-items:center;font-weight:600}
+.note-yellow{--n:#fef3c7;--nb:#f5dd8a}.note-green{--n:#dcfce7;--nb:#a7e3bd}.note-blue{--n:#dbeafe;--nb:#a8c8f5}.note-pink{--n:#fce7f3;--nb:#f3b4d6}.note-purple{--n:#ede9fe;--nb:#c7b8f7}.note-gray{--n:#f1f5f9;--nb:#cbd5e1}
+.note-colors{display:flex;gap:10px;margin-top:12px}.note-swatch{width:28px;height:28px;border-radius:50%;background:var(--n);border:2px solid var(--nb);cursor:pointer;padding:0}.note-swatch.on{outline:2px solid var(--brand);outline-offset:2px}
+.share-list{display:grid;gap:4px;max-height:300px;overflow:auto}.share-row{display:flex;align-items:center;gap:10px;padding:6px 4px;border-bottom:1px solid var(--line2)}
