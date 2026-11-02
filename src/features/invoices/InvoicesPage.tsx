@@ -1,5 +1,5 @@
 import { Paginated } from '@/components/ui/Paginated';
-import { AlertTriangle, CheckCircle2, FileText, Plus, ShieldCheck, Wallet } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, FileText, Pencil, Plus, ShieldCheck, Wallet } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { fmtDate, inr } from '@/lib/format';
 import { useCan } from '@/lib/permissions';
 import { InvBadge } from './InvBadge';
+import type { Invoice } from '@/api/endpoints/invoices';
 import { NewInvoice } from './NewInvoice';
 import { useInvoiceList, useInvoiceSummary } from './useInvoices';
 
@@ -23,6 +24,7 @@ export function InvoicesPage() {
   const nav = useNavigate();
   const canManage = useCan('invoices:manage');
   const [mk, setMk] = useState(false);
+  const [editing, setEditing] = useState<Invoice | null>(null);
   const [f, setF] = useState('');
   const { data: s } = useInvoiceSummary();
   const { data, isLoading } = useInvoiceList(f);
@@ -46,11 +48,18 @@ export function InvoicesPage() {
         )}
       </PageHead>
       {mk && <NewInvoice onClose={() => setMk(false)} />}
+      {editing && <NewInvoice edit={editing} onClose={() => setEditing(null)} />}
       {s && aging && (
         <>
           <div className="grid kpis">
             <Kpi icon={Wallet} label="Outstanding" value={inr(s.outstanding)} sub="Sent, not yet paid" />
-            <Kpi icon={AlertTriangle} label="Overdue" value={inr(s.overdue)} sub={`${s.overdueCount} invoice${s.overdueCount === 1 ? '' : 's'}`} tone="warn" />
+            <Kpi
+              icon={AlertTriangle}
+              label="Overdue"
+              value={inr(s.overdue)}
+              sub={`${s.overdueCount} invoice${s.overdueCount === 1 ? '' : 's'}`}
+              tone="warn"
+            />
             <Kpi icon={CheckCircle2} label="Paid this month" value={inr(s.paidThisMonth)} sub="Collected" tone="good" />
             <Kpi icon={FileText} label="Drafts to review" value={s.draftCount} sub={inr(s.draftValue) + ' to send'} tone="info" />
           </div>
@@ -116,56 +125,78 @@ export function InvoicesPage() {
         {isLoading ? (
           <Skeleton />
         ) : data?.length ? (
-          <Paginated items={data} render={(pageRows) => (
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Invoice</th>
-                <th>Client</th>
-                <th>Placement</th>
-                <th>Issued</th>
-                <th>Due</th>
-                <th style={{ textAlign: 'right' }}>Total</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {pageRows.map((i) => (
-                <tr key={i.id} className="click" onClick={() => nav('/invoices/' + i.id)}>
-                  <td>
-                    <b>{i.number}</b>
-                    {i.docType === 'proforma' && (
-                      <span className="badge warn" style={{ marginLeft: 6 }}>
-                        Proforma
-                      </span>
-                    )}
-                    {i.docType === 'sez' && (
-                      <span className="badge" style={{ marginLeft: 6 }}>
-                        SEZ
-                      </span>
-                    )}
-                  </td>
-                  <td>{i.clientName}</td>
-                  <td>
-                    {i.candidateName}
-                    <div style={{ fontSize: 12.5, color: 'var(--muted)' }}>{i.jobTitle}</div>
-                  </td>
-                  <td>{fmtDate(i.issueDate)}</td>
-                  <td>
-                    {fmtDate(i.dueDate)}
-                    {i.daysOverdue > 0 && <div style={{ fontSize: 12, color: 'var(--bad)' }}>{i.daysOverdue}d late</div>}
-                  </td>
-                  <td style={{ textAlign: 'right' }}>
-                    <b>{inr(i.total)}</b>
-                  </td>
-                  <td>
-                    <InvBadge s={i.status} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          )} />
+          <Paginated
+            items={data}
+            render={(pageRows) => (
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Invoice</th>
+                    <th>Client</th>
+                    <th>Placement</th>
+                    <th>Issued</th>
+                    <th>Due</th>
+                    <th style={{ textAlign: 'right' }}>Total</th>
+                    <th>Status</th>
+                    {canManage && <th aria-label="Actions" />}
+                  </tr>
+                </thead>
+                <tbody>
+                  {pageRows.map((i) => (
+                    <tr key={i.id} className="click" onClick={() => nav('/invoices/' + i.id)}>
+                      <td>
+                        <b>{i.number}</b>
+                        {i.docType === 'proforma' && (
+                          <span className="badge warn" style={{ marginLeft: 6 }}>
+                            Proforma
+                          </span>
+                        )}
+                        {i.docType === 'sez' && (
+                          <span className="badge" style={{ marginLeft: 6 }}>
+                            SEZ
+                          </span>
+                        )}
+                      </td>
+                      <td>{i.clientName}</td>
+                      <td>
+                        {i.candidateName}
+                        <div style={{ fontSize: 12.5, color: 'var(--muted)' }}>{i.jobTitle}</div>
+                      </td>
+                      <td>{fmtDate(i.issueDate)}</td>
+                      <td>
+                        {fmtDate(i.dueDate)}
+                        {i.daysOverdue > 0 && <div style={{ fontSize: 12, color: 'var(--bad)' }}>{i.daysOverdue}d late</div>}
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        <b>{inr(i.total)}</b>
+                      </td>
+                      <td>
+                        <InvBadge s={i.status} />
+                      </td>
+                      {canManage && (
+                        <td style={{ textAlign: 'right' }}>
+                          {i.rawStatus === 'draft' && (
+                            <button
+                              className="btn ghost sm"
+                              aria-label={`Edit ${i.number}`}
+                              title="Edit draft"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (i.lineItems?.length) setEditing(i);
+                                else nav('/invoices/' + i.id);
+                              }}
+                            >
+                              <Pencil size={14} />
+                            </button>
+                          )}
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          />
         ) : (
           <EmptyState icon={FileText} title="No invoices here" sub="A draft invoice is created automatically when a candidate is placed." />
         )}

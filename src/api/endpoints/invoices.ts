@@ -98,6 +98,16 @@ export interface InvoiceUpdate {
   subtotal?: number;
   gstPct?: number;
   docType?: DocType;
+  /** drafts only */
+  buyerName?: string;
+  buyerGstin?: string;
+  buyerAddress?: string;
+  buyerState?: string;
+  registeredName?: string;
+  dueDate?: string;
+  internalRemarks?: string;
+  lutText?: string;
+  lineItems?: NewInvoiceBody['lineItems'];
 }
 
 /** A hand-made invoice. Leave `number` out to auto-generate; `client` is optional (it autofills the buyer and links the revenue). */
