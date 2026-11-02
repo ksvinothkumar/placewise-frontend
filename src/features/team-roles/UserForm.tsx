@@ -8,7 +8,7 @@ import { Field } from '@/components/ui/Layout';
 import { Modal } from '@/components/ui/Modal';
 import { useSessionStore } from '@/stores/session.store';
 import { toast } from '@/stores/ui.store';
-import { useBranchList, useRoles } from './hooks';
+import { useBranchList, useRoles, useUsers } from './hooks';
 import type { SecretInfo } from './SecretModal';
 
 const refId = (v: TeamUser['branch']) => (typeof v === 'string' ? v : (v?.id ?? ''));
@@ -27,6 +27,7 @@ interface Values {
   commissionPct: string | number;
   clientRef: string;
   branch: string;
+  manager: string;
 }
 
 export function UserForm({ u, onClose, onSecret }: { u?: TeamUser; onClose: () => void; onSecret: (s: SecretInfo) => void }) {
@@ -37,7 +38,7 @@ export function UserForm({ u, onClose, onSecret }: { u?: TeamUser; onClose: () =
   const [v, setV] = useState<Values>({
     name: u?.name ?? '',
     email: u?.email ?? '',
-    role: u?.role ?? 'hr',
+    role: u?.role ?? 'recruiter',
     title: u?.title ?? '',
     phone: u?.phone ?? '',
     active: u?.active !== false,
@@ -47,9 +48,12 @@ export function UserForm({ u, onClose, onSecret }: { u?: TeamUser; onClose: () =
     commissionPct: u?.commissionPct ?? '',
     clientRef: refId(u?.clientRef),
     branch: refId(u?.branch),
+    manager: u?.manager ?? '',
   });
   const set = (k: keyof Values) => (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setV((s) => ({ ...s, [k]: e.target.value }));
   const { data: rolesData } = useRoles();
+  const { data: team } = useUsers();
+  const managers = (team ?? []).filter((m) => m.id !== u?.id && m.active !== false && m.role !== 'client');
   const branches = useBranchList().data ?? [];
   const companies = asList(useApiQuery<{ id: string; name: string }[]>('/clients', undefined, { enabled: v.role === 'client' }).data);
 
@@ -60,14 +64,14 @@ export function UserForm({ u, onClose, onSecret }: { u?: TeamUser; onClose: () =
       if (u) {
         const body: UpdateUserInput = {
           name: v.name.trim(), title: v.title, phone: v.phone, role: v.role, active: v.active,
-          monthlyTarget: num(v.monthlyTarget), commissionPct: num(v.commissionPct), clientRef, branch: v.branch || '',
+          monthlyTarget: num(v.monthlyTarget), commissionPct: num(v.commissionPct), clientRef, branch: v.branch || '', manager: v.manager,
         };
         await usersApi.update(u.id, body);
         return null;
       }
       const body: CreateUserInput = {
         name: v.name.trim(), email: v.email.trim(), role: v.role, title: v.title, phone: v.phone, sendEmail: v.sendEmail,
-        clientRef, branch: v.branch || undefined, password: v.password || undefined,
+        clientRef, branch: v.branch || undefined, manager: v.manager || undefined, password: v.password || undefined,
       };
       return usersApi.create(body);
     },
@@ -129,6 +133,14 @@ export function UserForm({ u, onClose, onSecret }: { u?: TeamUser; onClose: () =
           })}
         </div>
       </div>
+      {v.role !== 'client' && (
+        <Field label="Reporting manager">
+          <select className="select" value={v.manager} onChange={set('manager')}>
+            <option value="">No manager</option>
+            {managers.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
+          </select>
+        </Field>
+      )}
       {branches.length > 0 && v.role !== 'client' && (
         <Field label="Branch">
           <select className="select" value={v.branch} onChange={set('branch')}>
@@ -145,7 +157,7 @@ export function UserForm({ u, onClose, onSecret }: { u?: TeamUser; onClose: () =
           </select>
         </Field>
       )}
-      {edit && ['admin', 'hr'].includes(v.role) && (
+      {edit && ['admin', 'administrator', 'hr', 'recruiter', 'team_lead', 'delivery_manager', 'junior_recruiter'].includes(v.role) && (
         <div className="f2">
           <Field label="Monthly placement target"><input className="input" type="number" min="0" placeholder="e.g. 3" value={v.monthlyTarget} onChange={set('monthlyTarget')} /></Field>
           <Field label="Commission % of fees"><input className="input" type="number" min="0" step="0.5" placeholder="e.g. 5" value={v.commissionPct} onChange={set('commissionPct')} /></Field>

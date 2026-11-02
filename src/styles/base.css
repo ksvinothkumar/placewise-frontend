@@ -177,3 +177,7 @@ code{font:12.5px ui-monospace,Menlo,monospace;background:var(--surface2);border:
 .note-yellow{--n:#fef3c7;--nb:#f5dd8a}.note-green{--n:#dcfce7;--nb:#a7e3bd}.note-blue{--n:#dbeafe;--nb:#a8c8f5}.note-pink{--n:#fce7f3;--nb:#f3b4d6}.note-purple{--n:#ede9fe;--nb:#c7b8f7}.note-gray{--n:#f1f5f9;--nb:#cbd5e1}
 .note-colors{display:flex;gap:10px;margin-top:12px}.note-swatch{width:28px;height:28px;border-radius:50%;background:var(--n);border:2px solid var(--nb);cursor:pointer;padding:0}.note-swatch.on{outline:2px solid var(--brand);outline-offset:2px}
 .share-list{display:grid;gap:4px;max-height:300px;overflow:auto}.share-row{display:flex;align-items:center;gap:10px;padding:6px 4px;border-bottom:1px solid var(--line2)}
+/* row action menu (Team page) */
+.row-menu{position:absolute;right:12px;top:calc(100% - 6px);z-index:30;min-width:210px;padding:6px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 36px -10px rgba(15,23,42,.35);text-align:left;display:grid;gap:2px}
+.row-menu button{display:flex;align-items:center;gap:9px;width:100%;padding:8px 10px;border:0;border-radius:8px;background:transparent;color:var(--text);font:inherit;font-size:13.5px;cursor:pointer;text-align:left}
+.row-menu button:hover{background:var(--surface2)}.row-menu button.danger{color:var(--bad,#dc2626)}

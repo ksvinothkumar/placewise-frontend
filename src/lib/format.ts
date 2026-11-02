@@ -71,7 +71,21 @@ export const scoreTone = (s: number): 'good' | 'warn' | 'bad' => (s >= 75 ? 'goo
 const PALETTE = ['#4f46e5', '#0891b2', '#7c3aed', '#db2777', '#ea580c', '#059669', '#2563eb', '#9333ea'];
 export const colorFor = (n?: string | null) => PALETTE[[...String(n)].reduce((a, c) => a + c.charCodeAt(0), 0) % PALETTE.length] as string;
 
-let ROLE_NAMES: Record<string, string> = { admin: 'Admin', hr: 'HR', finance: 'Finance', client: 'Client' };
+let ROLE_NAMES: Record<string, string> = {
+  admin: 'Super Admin',
+  administrator: 'Admin',
+  delivery_manager: 'Delivery Manager',
+  hr_ops_manager: 'HR Operations Manager',
+  team_lead: 'Team Lead',
+  recruiter: 'Recruiter',
+  junior_recruiter: 'Junior Recruiter',
+  intern: 'Intern',
+  business_team: 'Business Team',
+  hr: 'HR',
+  account_manager: 'Account Manager',
+  finance: 'Finance',
+  client: 'Client',
+};
 export const setRoleNames = (m?: Record<string, string> | null) => {
   if (m) ROLE_NAMES = m;
 };

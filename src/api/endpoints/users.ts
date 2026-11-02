@@ -14,6 +14,9 @@ export interface TeamUser {
   phone?: string;
   photoAt?: string | null;
   active?: boolean;
+  /** id of the reporting manager */
+  manager?: string | null;
+  createdAt?: string;
   totpEnabled?: boolean;
   lastLoginAt?: string | null;
   monthlyTarget?: number | null;
@@ -29,6 +32,7 @@ export interface CreateUserInput {
   password?: string;
   clientRef?: string;
   branch?: string;
+  manager?: string;
   title?: string;
   phone?: string;
   sendEmail?: boolean;
@@ -40,6 +44,8 @@ export interface UpdateUserInput {
   active?: boolean;
   clientRef?: string;
   branch?: string;
+  /** '' clears the reporting manager */
+  manager?: string;
   title?: string;
   phone?: string;
   monthlyTarget?: number | '';

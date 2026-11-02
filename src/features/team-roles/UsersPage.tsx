@@ -1,5 +1,6 @@
-import { Check, KeyRound, Pencil, Plus, Search, ShieldCheck, UserRound, X as XIcon } from 'lucide-react';
-import { useState } from 'react';
+import { KeyRound, MoreVertical, Pencil, Plus, Power, Search, ShieldCheck } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { usersApi, type TeamUser } from '@/api/endpoints/users';
 import { errorMessage } from '@/api/errors';
 import { useApiMutation } from '@/api/hooks';
@@ -7,39 +8,55 @@ import { queryKeys } from '@/api/queryKeys';
 import { CandidatePhoto } from '@/components/ui/Avatar';
 import { PageHead } from '@/components/ui/Layout';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { roleLabel } from '@/lib/format';
+import { fmtDate, roleLabel } from '@/lib/format';
 import { useSessionStore } from '@/stores/session.store';
 import { toast } from '@/stores/ui.store';
-import { useUsers } from './hooks';
+import { useRoles, useUsers } from './hooks';
 import { SecretModal, type SecretInfo } from './SecretModal';
 import { UserForm } from './UserForm';
 
-const ago = (d?: string | null) => {
-  if (!d) return 'Never';
-  const m = (Date.now() - new Date(d).getTime()) / 6e4;
-  return m < 60 ? Math.max(1, Math.floor(m)) + 'm ago' : m < 1440 ? Math.floor(m / 60) + 'h ago' : Math.floor(m / 1440) + 'd ago';
-};
-const MATRIX: [string, boolean, boolean][] = [
-  ['View dashboard, jobs, candidates, pipeline, interviews', true, true],
-  ['Add / edit jobs and candidates, import resumes', true, true],
-  ['Move candidates through the pipeline, schedule interviews', true, true],
-  ['See client fee agreements, revenue and forecast', true, false],
-  ['Add / edit clients', true, false],
-  ['Delete jobs, candidates and clients', true, false],
-  ['Manage team members, roles and passwords', true, false],
-  ['Create and track invoices, view the audit log', true, false],
-];
-const name = (v: { name: string } | string | null | undefined) => (typeof v === 'object' && v ? v.name : undefined);
+/** Everyone below `id` in the reporting chain: they cannot be picked as that person's manager (it would loop). */
+function reportsOf(id: string, all: TeamUser[]): Set<string> {
+  const out = new Set<string>();
+  const walk = (m: string) => all.forEach((u) => u.manager === m && !out.has(u.id) && (out.add(u.id), walk(u.id)));
+  walk(id);
+  return out;
+}
+
+const selectStyle = { width: 190, maxWidth: '100%' } as const;
 
 export function UsersPage() {
   const { data, isLoading } = useUsers();
+  const { data: rolesData } = useRoles();
   const me = useSessionStore((s) => s.user);
   const [form, setForm] = useState<{ u?: TeamUser } | null>(null);
   const [secret, setSecret] = useState<SecretInfo | null>(null);
+  const [menu, setMenu] = useState<string | null>(null);
   const [q, setQ] = useState('');
+  const menuRef = useRef<HTMLDivElement>(null);
+  const all = useMemo(() => data ?? [], [data]);
   const needle = q.toLowerCase();
-  const list = (data ?? []).filter((u) => !q || `${u.name}${u.email}${u.title ?? ''}`.toLowerCase().includes(needle));
+  const list = all.filter((u) => !q || `${u.name}${u.email}${u.title ?? ''}`.toLowerCase().includes(needle));
+  const staffRoles = (rolesData?.roles ?? []).filter((r) => r.kind === 'staff');
+  const nameOf = (id?: string | null) => all.find((u) => u.id === id)?.name;
 
+  useEffect(() => {
+    if (!menu) return;
+    const close = (e: MouseEvent) => !menuRef.current?.contains(e.target as Node) && setMenu(null);
+    const esc = (e: KeyboardEvent) => e.key === 'Escape' && setMenu(null);
+    addEventListener('mousedown', close);
+    addEventListener('keydown', esc);
+    return () => {
+      removeEventListener('mousedown', close);
+      removeEventListener('keydown', esc);
+    };
+  }, [menu]);
+
+  const change = useApiMutation((v: { u: TeamUser; patch: { role?: string; manager?: string; active?: boolean } }) => usersApi.update(v.u.id, v.patch), {
+    invalidate: [queryKeys.users.all, queryKeys.roles.all],
+    onSuccess: (_r, v) => toast(v.patch.role ? `${v.u.name} is now ${roleLabel(v.patch.role)}` : v.patch.active !== undefined ? (v.patch.active ? `${v.u.name} enabled` : `${v.u.name} disabled`) : 'Reporting manager updated'),
+    onError: (e) => toast(errorMessage(e), 'error'),
+  });
   const reset = useApiMutation((u: TeamUser) => usersApi.resetPassword(u.id), {
     onSuccess: (r, u) => {
       toast(r.email?.status === 'sent' ? `New password emailed to ${r.email.to}` : 'Password reset');
@@ -58,10 +75,12 @@ export function UsersPage() {
   const askReset2fa = (u: TeamUser) => {
     if (confirm(`Turn off two-step verification for ${u.name}? They can set it up again after signing in.`)) reset2fa.mutate(u);
   };
+  const busy = (u: TeamUser) => change.isPending && change.variables?.u.id === u.id;
 
   return (
     <>
-      <PageHead title="Team" sub="Manage who can sign in and what they can do">
+      <PageHead title="Team" sub="Who can sign in, what they can do, and who they report to">
+        <Link className="btn" to="/roles"><ShieldCheck size={16} />Roles &amp; access</Link>
         <button type="button" className="btn primary" onClick={() => setForm({})}><Plus size={16} />Add team member</button>
       </PageHead>
       <div className="card">
@@ -70,78 +89,83 @@ export function UsersPage() {
             <Search size={16} />
             <input className="input" placeholder="Search team…" aria-label="Search team" value={q} onChange={(e) => setQ(e.target.value)} />
           </div>
-          <span style={{ color: 'var(--muted)', marginLeft: 'auto' }}>{data?.length ?? 0} people</span>
+          <span style={{ color: 'var(--muted)', marginLeft: 'auto' }}>{all.length} people</span>
         </div>
         {isLoading && !data ? (
           <Skeleton />
         ) : (
-          <table className="table">
-            <thead>
-              <tr><th>Member</th><th>Role</th><th>Status</th><th>Last sign-in</th><th style={{ width: 210 }} /></tr>
-            </thead>
-            <tbody>
-              {list.map((u) => (
-                <tr key={u.id}>
-                  <td>
-                    <div className="who">
-                      <CandidatePhoto c={u} size={38} path={u.id === me?.id ? '/auth/photo' : undefined} />
-                      <div>
-                        <b>{u.name}{u.id === me?.id && <span className="badge" style={{ marginLeft: 8 }}>You</span>}</b>
-                        <span>{u.email}{u.title && ` · ${u.title}`}</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <span className={'badge ' + (u.role === 'admin' ? 'brand' : u.role === 'finance' ? 'warn' : 'info')}>
-                      {u.role === 'admin' ? <ShieldCheck size={12} /> : <UserRound size={12} />}{roleLabel(u.role)}
-                    </span>
-                    {name(u.branch) && <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 3 }}>{name(u.branch)}</div>}
-                    {u.role === 'client' && name(u.clientRef) && <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 3 }}>{name(u.clientRef)}</div>}
-                  </td>
-                  <td>
-                    {u.active === false ? <span className="badge bad">Disabled</span> : <span className="badge good">Active</span>}{' '}
-                    {u.totpEnabled && <span className="badge info" title="Two-step verification is on"><ShieldCheck size={11} />2FA</span>}
-                  </td>
-                  <td style={{ color: 'var(--text2)' }}>{ago(u.lastLoginAt)}</td>
-                  <td style={{ textAlign: 'right' }}>
-                    <button type="button" className="btn sm" onClick={() => setForm({ u })} aria-label={`Edit ${u.name}`}><Pencil size={13} />Edit</button>{' '}
-                    <button type="button" className="btn sm" onClick={() => askReset(u)} aria-label={`Reset password for ${u.name}`}><KeyRound size={13} />Reset &amp; email</button>
-                    {u.totpEnabled && (
-                      <>
-                        {' '}
-                        <button type="button" className="btn sm" title="Remove this person's two-step verification (for a lost phone)" aria-label={`Reset two-step verification for ${u.name}`} onClick={() => askReset2fa(u)}>
-                          <ShieldCheck size={13} />Reset 2FA
+          <div style={{ overflowX: 'auto' }}>
+            <table className="table">
+              <thead>
+                <tr><th>Member</th><th>Email</th><th>Role</th><th>Reporting manager</th><th>Status</th><th>Joined</th><th style={{ width: 48 }} /></tr>
+              </thead>
+              <tbody>
+                {list.map((u) => {
+                  const isMe = u.id === me?.id;
+                  const blocked = reportsOf(u.id, all);
+                  const options = all.filter((m) => m.id !== u.id && m.active !== false && m.role !== 'client' && !blocked.has(m.id));
+                  const roleKnown = staffRoles.some((r) => r.key === u.role);
+                  return (
+                    <tr key={u.id}>
+                      <td>
+                        <div className="who">
+                          <CandidatePhoto c={u} size={38} path={isMe ? '/auth/photo' : undefined} />
+                          <b>{u.name}{isMe && <span style={{ marginLeft: 6, fontWeight: 400, color: 'var(--muted)' }}>(you)</span>}</b>
+                        </div>
+                      </td>
+                      <td style={{ color: 'var(--text2)' }}>{u.email}</td>
+                      <td>
+                        {isMe || u.role === 'client' ? (
+                          <span style={{ color: 'var(--text2)' }}>{roleLabel(u.role)}</span>
+                        ) : (
+                          <select className="select" style={selectStyle} aria-label={`Role for ${u.name}`} value={u.role} disabled={busy(u)} onChange={(e) => change.mutate({ u, patch: { role: e.target.value } })}>
+                            {!roleKnown && <option value={u.role}>{roleLabel(u.role)}</option>}
+                            {staffRoles.map((r) => <option key={r.key} value={r.key}>{r.name}</option>)}
+                          </select>
+                        )}
+                      </td>
+                      <td>
+                        {u.role === 'client' ? (
+                          <span style={{ color: 'var(--muted)' }}>—</span>
+                        ) : (
+                          <select className="select" style={selectStyle} aria-label={`Reporting manager for ${u.name}`} value={u.manager ?? ''} disabled={busy(u)} onChange={(e) => change.mutate({ u, patch: { manager: e.target.value } })}>
+                            <option value="">No manager</option>
+                            {u.manager && !options.some((m) => m.id === u.manager) && <option value={u.manager}>{nameOf(u.manager) ?? 'Former member'}</option>}
+                            {options.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
+                          </select>
+                        )}
+                      </td>
+                      <td>
+                        {u.active === false ? <span className="badge bad">Disabled</span> : <span className="badge good">Active</span>}{' '}
+                        {u.totpEnabled && <span className="badge info" title="Two-step verification is on"><ShieldCheck size={11} />2FA</span>}
+                      </td>
+                      <td style={{ color: 'var(--text2)', whiteSpace: 'nowrap' }}>{u.createdAt ? fmtDate(u.createdAt) : '—'}</td>
+                      <td style={{ position: 'relative', textAlign: 'right' }}>
+                        <button type="button" className="iconbtn" aria-label={`Actions for ${u.name}`} aria-expanded={menu === u.id} onClick={() => setMenu(menu === u.id ? null : u.id)}>
+                          <MoreVertical size={17} />
                         </button>
-                      </>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                        {menu === u.id && (
+                          <div ref={menuRef} className="row-menu" role="menu">
+                            <button type="button" role="menuitem" onClick={() => (setMenu(null), setForm({ u }))}><Pencil size={14} />Edit details</button>
+                            <button type="button" role="menuitem" aria-label={`Reset password for ${u.name}`} onClick={() => (setMenu(null), askReset(u))}><KeyRound size={14} />Reset password &amp; email</button>
+                            {u.totpEnabled && (
+                              <button type="button" role="menuitem" aria-label={`Reset two-step verification for ${u.name}`} onClick={() => (setMenu(null), askReset2fa(u))}><ShieldCheck size={14} />Reset 2FA</button>
+                            )}
+                            {!isMe && (
+                              <button type="button" role="menuitem" className={u.active === false ? '' : 'danger'} onClick={() => (setMenu(null), change.mutate({ u, patch: { active: u.active === false } }))}>
+                                <Power size={14} />{u.active === false ? 'Enable account' : 'Disable account'}
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
-      </div>
-      <div className="card" style={{ marginTop: 18 }}>
-        <div className="card-h"><ShieldCheck size={17} color="var(--brand)" /><h3>What each role can do</h3></div>
-        <div className="card-b" style={{ paddingTop: 8 }}>
-          <table className="table">
-            <thead>
-              <tr><th>Permission</th><th style={{ width: 90, textAlign: 'center' }}>Admin</th><th style={{ width: 90, textAlign: 'center' }}>HR</th></tr>
-            </thead>
-            <tbody>
-              {MATRIX.map(([t, a, h]) => (
-                <tr key={t}>
-                  <td>{t}</td>
-                  {[a, h].map((ok, i) => (
-                    <td key={i} style={{ textAlign: 'center' }}>
-                      {ok ? <Check size={17} color="var(--good)" aria-label="Allowed" /> : <XIcon size={17} color="var(--muted)" aria-label="Not allowed" />}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
       </div>
       {form && <UserForm u={form.u} onClose={() => setForm(null)} onSecret={setSecret} />}
       {secret && <SecretModal {...secret} onClose={() => setSecret(null)} />}
