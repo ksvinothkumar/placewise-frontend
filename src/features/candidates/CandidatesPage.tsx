@@ -53,11 +53,13 @@ export function CandidatesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const [page, setPage] = useState(1);
-  const [size, setSize] = useState(10);
   const filters = { ...f, q: dq };
   const filterKey = JSON.stringify(filters);
-  useEffect(() => setPage(1), [filterKey]);
+  // a page belongs to the filters it was chosen under: changing them falls back to page 1 in the same render
+  const [pageAt, setPageAt] = useState({ page: 1, key: filterKey });
+  const [size, setSize] = useState(10);
+  const page = pageAt.key === filterKey ? pageAt.page : 1;
+  const setPage = (n: number) => setPageAt({ page: n, key: filterKey });
   const paged = useCandidatePage(filters, page, size);
   const isLoading = paged.isLoading;
   const data = paged.data?.data;
