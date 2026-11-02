@@ -41,6 +41,7 @@ export interface InvoiceTemplate {
   sacCode: string;
   taxPrefix: string;
   proformaPrefix: string;
+  sezPrefix?: string;
   autoType?: string;
   showLogo?: boolean;
   showBank?: boolean;

@@ -39,6 +39,9 @@ export function InvoiceDocument({ inv }: { inv: Invoice }) {
   const sup = inv.supplier ?? {};
   const bt = inv.billTo ?? {};
   const proforma = inv.docType === 'proforma';
+  const sez = inv.docType === 'sez';
+  const lines = inv.lineItems ?? [];
+  const hourly = inv.billingMode === 'hourly';
   const center = t.headerLayout === 'center';
   const pct = inv.gstPct != null ? inv.gstPct : 18;
   const half = pct / 2;
@@ -65,7 +68,7 @@ export function InvoiceDocument({ inv }: { inv: Invoice }) {
           </div>
         </div>
         <div style={{ marginLeft: center ? 0 : 'auto', textAlign: center ? 'center' : 'right' }}>
-          <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '.06em', color: accent }}>{proforma ? 'PROFORMA INVOICE' : 'TAX INVOICE'}</div>
+          <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '.06em', color: accent }}>{proforma ? 'PROFORMA INVOICE' : sez ? 'SEZ INVOICE' : 'TAX INVOICE'}</div>
           <div style={{ color: '#64748b' }}>{inv.number}</div>
           {inv.proformaNumber && <div style={{ color: '#64748b', fontSize: 12 }}>Ref. proforma {inv.proformaNumber}</div>}
         </div>
@@ -75,6 +78,7 @@ export function InvoiceDocument({ inv }: { inv: Invoice }) {
         <div>
           <Label>Billed to</Label>
           <b style={{ fontSize: 15 }}>{bt.name || inv.clientName}</b>
+          {bt.registeredName && bt.registeredName !== bt.name && <div style={{ color: '#475569' }}>Registered name: {bt.registeredName}</div>}
           <div style={{ color: '#475569' }}>
             {bt.address}
             {bt.state ? ` · ${bt.state}` : ''}
@@ -100,6 +104,56 @@ export function InvoiceDocument({ inv }: { inv: Invoice }) {
           )}
         </div>
       </div>
+      {lines.length ? (
+        <table style={{ width: '100%', borderCollapse: 'collapse', margin: '22px 0 8px' }}>
+          <thead>
+            <tr style={{ background: accent, color: '#fff' }}>
+              <th style={{ textAlign: 'left', padding: '9px 12px', fontWeight: 600 }}>Description</th>
+              {hourly ? (
+                <>
+                  <th style={{ textAlign: 'right', padding: '9px 12px', fontWeight: 600 }}>Rate/hr</th>
+                  <th style={{ textAlign: 'right', padding: '9px 12px', fontWeight: 600 }}>Hours</th>
+                </>
+              ) : (
+                <>
+                  <th style={{ textAlign: 'right', padding: '9px 12px', fontWeight: 600 }}>Annual CTC</th>
+                  <th style={{ textAlign: 'right', padding: '9px 12px', fontWeight: 600 }}>Fee</th>
+                </>
+              )}
+              <th style={{ padding: '9px 12px', fontWeight: 600, width: 80 }}>SAC</th>
+              <th style={{ textAlign: 'right', padding: '9px 12px', fontWeight: 600, width: 130 }}>Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {lines.map((l, i) => (
+              <tr key={i}>
+                <td style={{ padding: 12, borderBottom: '1px solid #e2e8f0' }}>
+                  <b>{l.description || l.candidateName}</b>
+                  {(l.candidateName || l.designation) && (
+                    <div style={{ color: '#64748b', fontSize: 12.5 }}>
+                      {[l.description ? l.candidateName : '', l.designation].filter(Boolean).join(' · ')}
+                      {l.joiningDate ? `${l.candidateName || l.designation ? ' · ' : ''}Joined ${fmtDate(l.joiningDate)}` : ''}
+                    </div>
+                  )}
+                </td>
+                {hourly ? (
+                  <>
+                    <td style={{ padding: 12, textAlign: 'right', borderBottom: '1px solid #e2e8f0' }}>{l.rate != null ? inr(l.rate) : ''}</td>
+                    <td style={{ padding: 12, textAlign: 'right', borderBottom: '1px solid #e2e8f0' }}>{l.hours ?? ''}</td>
+                  </>
+                ) : (
+                  <>
+                    <td style={{ padding: 12, textAlign: 'right', borderBottom: '1px solid #e2e8f0' }}>{l.annualCtc ? inr(l.annualCtc) : ''}</td>
+                    <td style={{ padding: 12, textAlign: 'right', borderBottom: '1px solid #e2e8f0' }}>{l.feePct != null ? `${l.feePct}%` : ''}</td>
+                  </>
+                )}
+                <td style={{ padding: 12, textAlign: 'center', borderBottom: '1px solid #e2e8f0', color: '#475569' }}>{inv.sacCode}</td>
+                <td style={{ padding: 12, textAlign: 'right', borderBottom: '1px solid #e2e8f0' }}>{inr(l.amount)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
       <table style={{ width: '100%', borderCollapse: 'collapse', margin: '22px 0 8px' }}>
         <thead>
           <tr style={{ background: accent, color: '#fff' }}>
@@ -125,6 +179,7 @@ export function InvoiceDocument({ inv }: { inv: Invoice }) {
           </tr>
         </tbody>
       </table>
+      )}
       <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
         <div style={{ width: 300 }}>
           <Row k="Sub-total" v={inr(inv.subtotal)} />
@@ -144,7 +199,8 @@ export function InvoiceDocument({ inv }: { inv: Invoice }) {
       <div style={{ marginTop: 6, color: '#475569', fontSize: 12.5 }}>
         <b>Amount in words:</b> {amountInWords(inv.total)}
       </div>
-      {inv.taxNote && <div style={{ marginTop: 10, padding: '8px 12px', background: '#f1f5f9', borderRadius: 8, fontSize: 12.5 }}>{inv.taxNote}</div>}
+      {sez && inv.lutText && <div style={{ marginTop: 10, padding: '8px 12px', background: '#f1f5f9', borderRadius: 8, fontSize: 12.5, fontWeight: 600 }}>{inv.lutText}</div>}
+      {inv.taxNote && !(sez && inv.lutText) && <div style={{ marginTop: 10, padding: '8px 12px', background: '#f1f5f9', borderRadius: 8, fontSize: 12.5 }}>{inv.taxNote}</div>}
       {proforma && <div style={{ marginTop: 10, padding: '8px 12px', background: '#fef3c7', borderRadius: 8, fontSize: 12.5, color: '#92400e' }}>This is a proforma invoice for advance information and is not a tax invoice.</div>}
       <div style={{ display: 'grid', gridTemplateColumns: showBank ? '1fr 1fr' : '1fr', gap: 28, marginTop: 24, fontSize: 12.5, color: '#475569' }}>
         {showBank && (

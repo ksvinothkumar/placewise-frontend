@@ -2,7 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, CheckCircle2, FileCheck2, Loader2, Printer, RotateCcw, Save, Send, ShieldAlert } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { invoicesApi, type InvoiceUpdate } from '@/api/endpoints/invoices';
+import { invoicesApi, type Invoice, type InvoiceUpdate } from '@/api/endpoints/invoices';
 import { errorMessage } from '@/api/errors';
 import { dashboardKey } from '@/api/endpoints/dashboard';
 import { queryKeys } from '@/api/queryKeys';
@@ -22,7 +22,7 @@ export function InvoiceViewPage() {
   const mail = useSessionStore((s) => s.mail);
   const { data: i, isLoading, isError } = useInvoice(id);
   const [busy, setBusy] = useState('');
-  const [ed, setEd] = useState<{ subtotal: string; gstPct: string; docType: 'tax' | 'proforma' } | null>(null);
+  const [ed, setEd] = useState<{ subtotal: string; gstPct: string; docType: Invoice['docType'] } | null>(null);
   if (isLoading) return <div className="card"><Skeleton rows={9} /></div>;
   if (isError || !i) return <EmptyState title="Invoice not found" />;
   const draft = i.rawStatus === 'draft';
@@ -51,6 +51,7 @@ export function InvoiceViewPage() {
         </Link>
         <InvBadge s={i.status} />
         {i.docType === 'proforma' && <span className="badge warn">Proforma</span>}
+        {i.docType === 'sez' && <span className="badge">SEZ</span>}
         <span style={{ flex: 1 }} />
         {w && i.docType === 'proforma' && i.rawStatus !== 'cancelled' && (
           <button
@@ -81,13 +82,13 @@ export function InvoiceViewPage() {
             Email to client
           </button>
         )}
-        {w && ['sent', 'draft'].includes(i.rawStatus) && i.docType === 'tax' && (
+        {w && ['sent', 'draft'].includes(i.rawStatus) && i.docType !== 'proforma' && (
           <button className="btn primary" onClick={() => void act('paid', () => put({ status: 'paid' }), 'Marked as paid')}>
             <CheckCircle2 size={15} />
             Mark as paid
           </button>
         )}
-        {w && i.replacement === 'none' && !draft && i.docType === 'tax' && (
+        {w && i.replacement === 'none' && !draft && i.docType !== 'proforma' && (
           <button className="btn" onClick={() => confirm('Flag this placement for replacement?') && void act('rep', () => put({ replacement: 'flagged' }), 'Flagged for replacement')}>
             <ShieldAlert size={15} />
             Flag replacement
@@ -109,7 +110,7 @@ export function InvoiceViewPage() {
           <div className="card-b" style={{ display: 'flex', gap: 14, alignItems: 'flex-end', flexWrap: 'wrap' }}>
             <label style={{ fontSize: 12.5, color: 'var(--text2)' }}>
               Amount before GST (₹)
-              <input className="input" type="number" min="1" style={{ display: 'block', width: 160 }} value={e.subtotal} onChange={(x) => setEd({ ...e, subtotal: x.target.value })} />
+              <input className="input" type="number" min="1" style={{ display: 'block', width: 160 }} disabled={!!i.lineItems?.length} title={i.lineItems?.length ? 'Built from line items' : undefined} value={e.subtotal} onChange={(x) => setEd({ ...e, subtotal: x.target.value })} />
             </label>
             <label style={{ fontSize: 12.5, color: 'var(--text2)' }}>
               GST %
@@ -117,9 +118,10 @@ export function InvoiceViewPage() {
             </label>
             <label style={{ fontSize: 12.5, color: 'var(--text2)' }}>
               Document
-              <select className="select" style={{ display: 'block', width: 170 }} value={e.docType} onChange={(x) => setEd({ ...e, docType: x.target.value as 'tax' | 'proforma' })}>
+              <select className="select" style={{ display: 'block', width: 170 }} value={e.docType} onChange={(x) => setEd({ ...e, docType: x.target.value as Invoice['docType'] })}>
                 <option value="tax">Tax invoice</option>
                 <option value="proforma">Proforma invoice</option>
+                <option value="sez">SEZ invoice</option>
               </select>
             </label>
             <button

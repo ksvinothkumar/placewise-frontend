@@ -10,10 +10,25 @@ export interface Party {
   gstin?: string;
   pan?: string;
   contact?: string;
+  registeredName?: string;
   bankName?: string;
   accountName?: string;
   accountNumber?: string;
   ifsc?: string;
+}
+export type DocType = 'tax' | 'proforma' | 'sez';
+export type BillingMode = 'ctc' | 'hourly';
+/** One billed line: CTC billing uses annualCtc x feePct (or a typed charge), hourly billing uses rate x hours. `amount` is before GST. */
+export interface LineItem {
+  description?: string;
+  candidateName?: string;
+  designation?: string;
+  joiningDate?: string;
+  annualCtc?: number;
+  feePct?: number;
+  rate?: number;
+  hours?: number;
+  amount: number;
 }
 export interface InvoiceLook {
   accent?: string;
@@ -26,7 +41,11 @@ export interface InvoiceLook {
 export interface Invoice {
   id: string;
   number: string;
-  docType: 'tax' | 'proforma';
+  docType: DocType;
+  billingMode?: BillingMode;
+  lineItems?: LineItem[];
+  lutText?: string;
+  internalRemarks?: string;
   /** effective status (a sent invoice past due shows as overdue) */
   status: InvoiceStatus;
   rawStatus: InvoiceStatus;
@@ -78,7 +97,25 @@ export interface InvoiceUpdate {
   replacement?: 'flagged' | 'replaced';
   subtotal?: number;
   gstPct?: number;
-  docType?: 'tax' | 'proforma';
+  docType?: DocType;
+}
+
+/** A hand-made invoice. Leave `number` out to auto-generate; `client` is optional (it autofills the buyer and links the revenue). */
+export interface NewInvoiceBody {
+  docType: DocType;
+  billingMode: BillingMode;
+  number?: string;
+  client?: string;
+  buyerName: string;
+  buyerGstin?: string;
+  buyerAddress?: string;
+  buyerState: string;
+  registeredName?: string;
+  issueDate?: string;
+  dueDate?: string;
+  lineItems: Array<Omit<LineItem, 'amount'> & { amount?: number }>;
+  internalRemarks?: string;
+  lutText?: string;
 }
 
 export const invoicesApi = {
@@ -86,7 +123,7 @@ export const invoicesApi = {
   list: (status?: string) => http.get<Invoice[]>('/invoices', { status }),
   get: (id: string) => http.get<Invoice>(`/invoices/${id}`),
   summary: () => http.get<InvoiceSummary>('/invoices/summary'),
-  create: (body: { client: string; docType: 'tax' | 'proforma'; amount: number; description: string }) => http.post<Invoice>('/invoices', body),
+  create: (body: NewInvoiceBody) => http.post<Invoice>('/invoices', body),
   patch: (id: string, body: InvoiceUpdate) => http.put<Invoice>(`/invoices/${id}`, body),
   send: (id: string) => http.post<SendResult>(`/invoices/${id}/send`, {}),
   convertToTax: (id: string) => http.post<Invoice>(`/invoices/${id}/convert-to-tax`),

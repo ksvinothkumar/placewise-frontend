@@ -106,6 +106,7 @@ export function InvoiceTab() {
               <Field label="SAC code"><input className="input" value={tp.sacCode} onChange={t('sacCode')} /></Field>
               <Field label="Tax invoice prefix"><input className="input" maxLength={6} value={tp.taxPrefix} onChange={t('taxPrefix')} /></Field>
               <Field label="Proforma prefix"><input className="input" maxLength={6} value={tp.proformaPrefix} onChange={t('proformaPrefix')} /></Field>
+              <Field label="SEZ invoice prefix"><input className="input" maxLength={6} value={tp.sezPrefix ?? 'SEZ'} onChange={t('sezPrefix')} /></Field>
             </div>
             <Field label="When someone is placed, create a">
               <select className="select" value={tp.autoType || 'tax'} onChange={t('autoType')}>

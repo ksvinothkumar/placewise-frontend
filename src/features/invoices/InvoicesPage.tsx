@@ -37,7 +37,7 @@ export function InvoicesPage() {
   const maxA = aging ? Math.max(1, ...aging.map((a) => a[1])) : 1;
   return (
     <>
-      <PageHead title="Invoices" sub="Tax and proforma invoices, payments and replacement guarantees">
+      <PageHead title="Invoices" sub="Proforma, tax and SEZ invoices, payments and replacement guarantees">
         {canManage && (
           <button className="btn primary" onClick={() => setMk(true)}>
             <Plus size={16} />
@@ -137,6 +137,11 @@ export function InvoicesPage() {
                     {i.docType === 'proforma' && (
                       <span className="badge warn" style={{ marginLeft: 6 }}>
                         Proforma
+                      </span>
+                    )}
+                    {i.docType === 'sez' && (
+                      <span className="badge" style={{ marginLeft: 6 }}>
+                        SEZ
                       </span>
                     )}
                   </td>
