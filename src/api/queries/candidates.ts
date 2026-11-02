@@ -8,6 +8,8 @@ const k = queryKeys.candidates;
 
 export const useCandidates = (f: CandidateFilters) =>
   useQuery({ queryKey: k.list(f), queryFn: () => candidatesApi.list(f), placeholderData: keepPreviousData });
+export const useCandidatePage = (f: CandidateFilters, page: number, limit: number) =>
+  useQuery({ queryKey: [...k.list(f), 'page', page, limit], queryFn: () => candidatesApi.listPage(f, page, limit), placeholderData: keepPreviousData });
 export const useCandidate = (id: string | undefined) =>
   useQuery({ queryKey: k.detail(id ?? ''), queryFn: () => candidatesApi.get(id as string), enabled: !!id });
 export const useCandidateSkills = () => useQuery({ queryKey: [...k.all, 'skills'], queryFn: candidatesApi.skills });

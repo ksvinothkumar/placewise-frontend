@@ -1,5 +1,5 @@
 import { fireEvent, screen, waitFor } from '@testing-library/react';
-import { http as msw } from 'msw';
+import { http as msw, HttpResponse } from 'msw';
 import { describe, expect, it, vi } from 'vitest';
 import { server } from '@/test/msw/server';
 import { API, ok, renderWithProviders } from '@/test/recruitment-utils';
@@ -87,5 +87,34 @@ describe('candidatesCsv', () => {
     const csv = candidatesCsv([{ ...ASHA, name: 'Asha "AR" Rao' }]);
     expect(csv.split('\n')[1]).toContain('"Asha ""AR"" Rao"');
     expect(csv).toContain('"node; sql; aws; k8s; go"');
+  });
+});
+
+describe('CandidatesPage server paging', () => {
+  it('asks the server for the page, shows the total from meta, and resets to page 1 when searching', async () => {
+    const seen: URLSearchParams[] = [];
+    server.use(
+      msw.get(`${API}/candidates`, ({ request }) => {
+        const p = new URL(request.url).searchParams;
+        seen.push(p);
+        const page = Number(p.get('page'));
+        const rows = Array.from({ length: 10 }, (_, i) => ({ ...RAVI, id: `c${page}-${i}`, name: `Person ${page}-${i}` }));
+        return HttpResponse.json({ data: rows, meta: { page, limit: 10, total: 34, totalPages: 4, requestId: 'r' } });
+      }),
+      msw.get(`${API}/candidates/skills`, () => ok([])),
+      msw.get(`${API}/candidates/tags`, () => ok([])),
+      msw.get(`${API}/saved-searches`, () => ok([])),
+    );
+    renderWithProviders(<CandidatesPage />);
+    expect(await screen.findByText('Person 1-0')).toBeInTheDocument();
+    expect(screen.getByText('34 candidates')).toBeInTheDocument();
+    expect(screen.getByText('1–10 of 34')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Next page' }));
+    expect(await screen.findByText('Person 2-0')).toBeInTheDocument();
+    expect(seen.at(-1)?.get('page')).toBe('2');
+    expect(seen.at(-1)?.get('limit')).toBe('10');
+    fireEvent.change(screen.getByLabelText('Search candidates'), { target: { value: 'person' } });
+    await waitFor(() => expect(seen.at(-1)?.get('q')).toBe('person'));
+    expect(seen.at(-1)?.get('page')).toBe('1');
   });
 });

@@ -1,11 +1,11 @@
-import { Paginated } from '@/components/ui/Paginated';
+import { Pager } from '@/components/ui/Paginated';
 import { useQueryClient } from '@tanstack/react-query';
 import { Bookmark, Copy, Download, FileText, FileUp, Plus, Search, X as XIcon } from 'lucide-react';
 import { useEffect, useState, type ChangeEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { savedSearchesApi, type Candidate, type CandidateFilters } from '@/api/endpoints/candidates';
+import { candidatesApi, savedSearchesApi, type Candidate, type CandidateFilters } from '@/api/endpoints/candidates';
 import { errorMessage } from '@/api/errors';
-import { useCandidateSkills, useCandidateTags, useCandidates, useSavedSearches } from '@/api/queries/candidates';
+import { useCandidateSkills, useCandidateTags, useCandidatePage, useSavedSearches } from '@/api/queries/candidates';
 import { queryKeys } from '@/api/queryKeys';
 import { BulkImport } from '@/components/business/BulkImport';
 import { DuplicatesModal } from '@/components/business/Duplicates';
@@ -53,7 +53,15 @@ export function CandidatesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const { data, isLoading } = useCandidates({ ...f, q: dq });
+  const [page, setPage] = useState(1);
+  const [size, setSize] = useState(10);
+  const filters = { ...f, q: dq };
+  const filterKey = JSON.stringify(filters);
+  useEffect(() => setPage(1), [filterKey]);
+  const paged = useCandidatePage(filters, page, size);
+  const isLoading = paged.isLoading;
+  const data = paged.data?.data;
+  const total = paged.data?.meta.total ?? data?.length ?? 0;
   const skills = useCandidateSkills();
   const tagList = useCandidateTags();
   const saved = useSavedSearches();
@@ -85,15 +93,21 @@ export function CandidatesPage() {
       toast(errorMessage(e), 'error');
     }
   };
-  const csv = () => {
-    const url = URL.createObjectURL(new Blob([candidatesCsv(data ?? [])], { type: 'text/csv' }));
+  const csv = async () => {
+    // the export is the whole filtered list, not just the page on screen
+    const all = await candidatesApi.list(filters).catch((e) => {
+      toast(errorMessage(e), 'error');
+      return null;
+    });
+    if (!all) return;
+    const url = URL.createObjectURL(new Blob([candidatesCsv(all)], { type: 'text/csv' }));
     Object.assign(document.createElement('a'), { href: url, download: 'candidates.csv' }).click();
     setTimeout(() => URL.revokeObjectURL(url), 2000);
   };
 
   return (
     <>
-      <PageHead title="Talent pool" sub={`${data?.length ?? '…'} candidates`}>
+      <PageHead title="Talent pool" sub={`${data ? total : '…'} candidates`}>
         {canWrite && (
           <button className="btn" onClick={() => setBulk(true)}>
             <FileUp size={16} />
@@ -177,7 +191,7 @@ export function CandidatesPage() {
         {isLoading && !data ? (
           <Skeleton rows={8} />
         ) : data?.length ? (
-          <Paginated items={data} render={(pageRows) => (
+          <>
           <table className="table">
             <thead>
               <tr>
@@ -191,7 +205,7 @@ export function CandidatesPage() {
               </tr>
             </thead>
             <tbody>
-              {pageRows.map((c) => (
+              {data.map((c) => (
                 <tr key={c.id} className="click" onClick={() => setOpen(c.id)}>
                   <td>
                     <div className="who">
@@ -244,7 +258,8 @@ export function CandidatesPage() {
               ))}
             </tbody>
           </table>
-          )} />
+          <Pager total={total} page={page} size={size} onPage={setPage} onSize={(n) => { setSize(n); setPage(1); }} />
+          </>
         ) : (
           <Empty title="No candidates match" sub="Adjust the filters or import a resume." />
         )}

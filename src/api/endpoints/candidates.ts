@@ -123,6 +123,8 @@ const base = '/candidates';
 export const candidatesApi = {
   base,
   list: (f: CandidateFilters) => http.get<Candidate[]>(base, f as Query),
+  /** One page from the server: `meta.total` is the number of candidates that match the filters. */
+  listPage: (f: CandidateFilters, page: number, limit: number) => http.raw<Candidate[]>(base, { query: { ...(f as Query), page, limit } }),
   get: (id: string) => http.get<CandidateDetail>(`${base}/${id}`),
   create: (body: Record<string, unknown>, force = false) => http.post<Candidate>(base + (force ? '?force=1' : ''), body),
   update: (id: string, body: Record<string, unknown>) => http.put<Candidate>(`${base}/${id}`, body),
