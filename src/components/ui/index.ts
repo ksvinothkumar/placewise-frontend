@@ -11,3 +11,4 @@ export * from './Skeleton';
 export * from './Table';
 export * from './Tabs';
 export * from './Toast';
+export * from './SearchSelect';

@@ -100,8 +100,37 @@ describe('PipelinePage stage moves', () => {
     );
     renderWithProviders(<PipelinePage />);
     await screen.findByRole('button', { name: /Asha Rao/ });
-    await screen.findByRole('option', { name: /Backend Engineer/ });
-    fireEvent.change(screen.getByLabelText('Filter by job'), { target: { value: 'j1' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Filter by job' }));
+    fireEvent.change(screen.getByLabelText('Search Filter by job'), { target: { value: 'backend' } });
+    fireEvent.click(await screen.findByRole('option', { name: /Backend Engineer/ }));
     await waitFor(() => expect(seen.at(-1)).toBe('j1'));
+  });
+});
+
+describe('PipelinePage client filter', () => {
+  it('shows only the chosen client\'s candidates and narrows the job list', async () => {
+    const other = { ...APP, id: 'a2', candidate: { id: 'c2', name: 'Ben Roy' }, job: { id: 'j2', title: 'Designer', client: { id: 'cl2', name: 'Zeta' } } };
+    server.use(
+      msw.get(`${API}/jobs`, () =>
+        ok([
+          { id: 'j1', title: 'Backend Engineer', client: { id: 'cl1', name: 'Acme' } },
+          { id: 'j2', title: 'Designer', client: { id: 'cl2', name: 'Zeta' } },
+        ]),
+      ),
+      msw.get(`${API}/applications`, () => ok([APP, other])),
+    );
+    renderWithProviders(<PipelinePage />);
+    await screen.findByText('Asha Rao');
+    expect(screen.getByText('Ben Roy')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Filter by client' })).toBeEnabled());
+    fireEvent.click(screen.getByRole('button', { name: 'Filter by client' }));
+    fireEvent.change(screen.getByLabelText('Search Filter by client'), { target: { value: 'ze' } });
+    expect(screen.queryByRole('option', { name: 'Acme' })).toBeNull();
+    fireEvent.click(screen.getByRole('option', { name: 'Zeta' }));
+    expect(screen.queryByText('Asha Rao')).toBeNull();
+    expect(screen.getByText('Ben Roy')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Filter by job' }));
+    const jobs = within(screen.getByRole('listbox', { name: 'Filter by job' })).getAllByRole('option').map((o) => o.textContent);
+    expect(jobs).toEqual(['All jobs', 'Designer · Zeta']);
   });
 });
