@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { PageHead } from '@/components/ui/Layout';
+import { AutomationTab } from './AutomationTab';
 import { BranchesTab } from './BranchesTab';
 import { CrmStagesTab } from './CrmStagesTab';
 import { InvoiceTab } from './InvoiceTab';
@@ -9,6 +10,7 @@ import { StagesTab } from './StagesTab';
 const TABS = [
   ['leave', 'Leave & holidays', LeaveTab],
   ['stages', 'Pipeline stages', StagesTab],
+  ['automation', 'Automation', AutomationTab],
   ['crm', 'CRM stages', CrmStagesTab],
   ['invoice', 'Invoice & company', InvoiceTab],
   ['branches', 'Branches', BranchesTab],

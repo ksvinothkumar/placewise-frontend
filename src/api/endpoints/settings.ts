@@ -62,6 +62,26 @@ export interface LeavePolicy {
   weeklyOff: number[];
 }
 
+export type AutomationEmail = 'outreach' | 'submission' | 'offer' | 'reject';
+export interface AutomationTask {
+  title: string;
+  dueDays: number;
+  priority: 'High' | 'Medium' | 'Low';
+}
+/** What happens when an application enters a stage. `moveTo` is a stage key; `moveAfterDays` 0 means straight away. */
+export interface StageAutomation {
+  tasks: AutomationTask[];
+  email: '' | AutomationEmail;
+  moveTo: string;
+  moveAfterDays: number;
+  nudgeAfterDays: number;
+}
+export interface AutomationSettings {
+  enabled: boolean;
+  /** keyed by stage key */
+  rules: Record<string, StageAutomation>;
+}
+
 /** GET /settings: stages for everyone, the rest only for `settings:manage`. */
 export interface SettingsView extends Partial<LeavePolicy> {
   stages: StageDef[];
@@ -69,6 +89,7 @@ export interface SettingsView extends Partial<LeavePolicy> {
   contactStages: CrmStageDef[];
   company?: CompanyInfo;
   invoice?: InvoiceTemplate;
+  automation?: AutomationSettings;
 }
 
 export interface Branch {
@@ -92,6 +113,7 @@ export const settingsApi = {
   saveCrmStages: (which: CrmStageGroup, stages: CrmStageInput[], moves?: Record<string, string>) =>
     http.put<unknown>(`/settings/crm-stages/${which}`, { stages, moves }),
   saveCompany: (company: CompanyInfo) => http.put<unknown>('/settings/company', company),
+  saveAutomation: (a: AutomationSettings) => http.put<AutomationSettings>('/settings/automation', a),
   saveInvoice: (invoice: InvoiceTemplate) => http.put<unknown>('/settings/invoice', invoice),
   /** mounted by the attendance module in the backend, at /settings/leave */
   saveLeave: (policy: LeavePolicy) => http.put<unknown>('/settings/leave', policy),
