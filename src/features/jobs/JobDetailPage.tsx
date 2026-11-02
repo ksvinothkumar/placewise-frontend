@@ -1,3 +1,4 @@
+import { Paginated } from '@/components/ui/Paginated';
 import { useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Clock, Copy, MapPin, Plus, Sparkles, Trash2, Wallet } from 'lucide-react';
 import { useState } from 'react';
@@ -99,6 +100,7 @@ export function JobDetailPage() {
             <small>skills 55% · experience 20% · salary 15% · location 10%</small>
           </div>
           {j.matches.length ? (
+            <Paginated items={j.matches} render={(pageRows) => (
             <table className="table" style={{ marginTop: 12 }}>
               <thead>
                 <tr>
@@ -109,7 +111,7 @@ export function JobDetailPage() {
                 </tr>
               </thead>
               <tbody>
-                {j.matches.map((m) => (
+                {pageRows.map((m) => (
                   <tr key={m.candidate.id}>
                     <td>
                       <div
@@ -156,6 +158,7 @@ export function JobDetailPage() {
                 ))}
               </tbody>
             </table>
+            )} />
           ) : (
             <Empty title="Everyone is in this pipeline" />
           )}

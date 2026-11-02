@@ -1,3 +1,4 @@
+import { Paginated } from '@/components/ui/Paginated';
 import { useQueryClient } from '@tanstack/react-query';
 import { ExternalLink, Globe, Plus, Search } from 'lucide-react';
 import { useState } from 'react';
@@ -83,6 +84,7 @@ export function JobsPage() {
         {isLoading ? (
           <Skeleton />
         ) : list.length ? (
+          <Paginated items={list} render={(pageRows) => (
           <table className="table">
             <thead>
               <tr>
@@ -98,7 +100,7 @@ export function JobsPage() {
               </tr>
             </thead>
             <tbody>
-              {list.map((j) => (
+              {pageRows.map((j) => (
                 <tr key={j.id} className="click" onClick={() => nav('/jobs/' + j.id)}>
                   <td>
                     <b>{j.title}</b>
@@ -156,6 +158,7 @@ export function JobsPage() {
               ))}
             </tbody>
           </table>
+          )} />
         ) : (
           <Empty title="No jobs found" sub="Try a different search or create a new job." />
         )}

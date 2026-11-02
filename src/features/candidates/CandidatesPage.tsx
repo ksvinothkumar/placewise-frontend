@@ -1,3 +1,4 @@
+import { Paginated } from '@/components/ui/Paginated';
 import { useQueryClient } from '@tanstack/react-query';
 import { Bookmark, Copy, Download, FileText, FileUp, Plus, Search, X as XIcon } from 'lucide-react';
 import { useEffect, useState, type ChangeEvent } from 'react';
@@ -176,6 +177,7 @@ export function CandidatesPage() {
         {isLoading && !data ? (
           <Skeleton rows={8} />
         ) : data?.length ? (
+          <Paginated items={data} render={(pageRows) => (
           <table className="table">
             <thead>
               <tr>
@@ -189,7 +191,7 @@ export function CandidatesPage() {
               </tr>
             </thead>
             <tbody>
-              {data.map((c) => (
+              {pageRows.map((c) => (
                 <tr key={c.id} className="click" onClick={() => setOpen(c.id)}>
                   <td>
                     <div className="who">
@@ -242,6 +244,7 @@ export function CandidatesPage() {
               ))}
             </tbody>
           </table>
+          )} />
         ) : (
           <Empty title="No candidates match" sub="Adjust the filters or import a resume." />
         )}

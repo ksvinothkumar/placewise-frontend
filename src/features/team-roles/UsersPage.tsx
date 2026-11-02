@@ -1,3 +1,4 @@
+import { Paginated } from '@/components/ui/Paginated';
 import { KeyRound, MoreVertical, Pencil, Plus, Power, Search, ShieldCheck } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -95,12 +96,13 @@ export function UsersPage() {
           <Skeleton />
         ) : (
           <div style={{ overflowX: 'auto' }}>
+            <Paginated items={list} render={(pageRows) => (
             <table className="table">
               <thead>
                 <tr><th>Member</th><th>Email</th><th>Role</th><th>Reporting manager</th><th>Status</th><th>Joined</th><th style={{ width: 48 }} /></tr>
               </thead>
               <tbody>
-                {list.map((u) => {
+                {pageRows.map((u) => {
                   const isMe = u.id === me?.id;
                   const blocked = reportsOf(u.id, all);
                   const options = all.filter((m) => m.id !== u.id && m.active !== false && m.role !== 'client' && !blocked.has(m.id));
@@ -164,6 +166,7 @@ export function UsersPage() {
                 })}
               </tbody>
             </table>
+            )} />
           </div>
         )}
       </div>

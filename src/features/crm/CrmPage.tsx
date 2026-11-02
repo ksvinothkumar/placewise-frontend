@@ -1,3 +1,4 @@
+import { Paginated } from '@/components/ui/Paginated';
 import { useQuery } from '@tanstack/react-query';
 import { AlarmClock, Building2, CalendarClock, LayoutGrid, List, Plus, Search, TrendingUp, Trophy, Users2 } from 'lucide-react';
 import { useState } from 'react';
@@ -167,6 +168,7 @@ export function CrmPage() {
             comps.isLoading ? (
               <Skeleton />
             ) : list.length ? (
+              <Paginated items={list} render={(pageRows) => (
               <table className="table">
                 <thead>
                   <tr>
@@ -179,7 +181,7 @@ export function CrmPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {list.map((c) => (
+                  {pageRows.map((c) => (
                     <tr key={c.id} className="click" onClick={() => nav('/crm/companies/' + c.id)}>
                       <td>
                         <b>{c.name}</b>
@@ -199,12 +201,14 @@ export function CrmPage() {
                   ))}
                 </tbody>
               </table>
+              )} />
             ) : (
               <EmptyState icon={Building2} title="No leads yet" sub="Add the first company you want to win." />
             )
           ) : contacts.isLoading ? (
             <Skeleton />
           ) : contacts.data?.length ? (
+            <Paginated items={contacts.data} render={(pageRows) => (
             <table className="table">
               <thead>
                 <tr>
@@ -217,7 +221,7 @@ export function CrmPage() {
                 </tr>
               </thead>
               <tbody>
-                {contacts.data.map((c) => (
+                {pageRows.map((c) => (
                   <tr key={c.id}>
                     <td>
                       <div className="who">
@@ -270,6 +274,7 @@ export function CrmPage() {
                 ))}
               </tbody>
             </table>
+            )} />
           ) : (
             <EmptyState icon={Users2} title="No contacts yet" sub="Add the people you talk to at each company." />
           )}

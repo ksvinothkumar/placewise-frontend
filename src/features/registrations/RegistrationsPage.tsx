@@ -1,3 +1,4 @@
+import { Paginated } from '@/components/ui/Paginated';
 import { useQuery } from '@tanstack/react-query';
 import { ClipboardCheck } from 'lucide-react';
 import { useState } from 'react';
@@ -34,10 +35,11 @@ export function RegistrationsPage() {
         {isLoading && !data ? (
           <Skeleton rows={5} />
         ) : data?.items.length ? (
+          <Paginated items={data.items} render={(pageRows) => (
           <table className="table">
             <thead><tr><th>Received</th><th>Workspace</th><th>Contact</th><th>Plan</th><th>Details</th><th>{status === 'pending' ? '' : 'Reviewed'}</th></tr></thead>
             <tbody>
-              {data.items.map((r) => (
+              {pageRows.map((r) => (
                 <tr key={r.id}>
                   <td style={{ whiteSpace: 'nowrap', color: 'var(--text2)' }}>{fmtDT(r.createdAt)}</td>
                   <td>
@@ -72,6 +74,7 @@ export function RegistrationsPage() {
               ))}
             </tbody>
           </table>
+          )} />
         ) : (
           <EmptyState icon={ClipboardCheck} title={isError ? 'Could not load registrations' : `No ${status} registrations`} />
         )}

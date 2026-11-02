@@ -1,3 +1,4 @@
+import { Paginated } from '@/components/ui/Paginated';
 import { useQuery } from '@tanstack/react-query';
 import { BadgeCheck, Download, Percent, Send, Target, Timer, TrendingUp, Trophy } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -100,6 +101,7 @@ export function ReportsPage() {
             CSV
           </button>
         </div>
+        <Paginated items={d.recruiters} render={(pageRows) => (
         <table className="table" style={{ marginTop: 12 }}>
           <thead>
             <tr>
@@ -120,7 +122,7 @@ export function ReportsPage() {
             </tr>
           </thead>
           <tbody>
-            {d.recruiters.map((r, i) => (
+            {pageRows.map((r, i) => (
               <tr key={r.id || 'none'} className="click" tabIndex={0} title="Click to see their candidates" onClick={() => setDrill({ kind: 'recruiter', arg: r.id || 'none' })} onKeyDown={(e) => { if (e.key === 'Enter') setDrill({ kind: 'recruiter', arg: r.id || 'none' }); }}>
                 <td>
                   <b>
@@ -168,6 +170,7 @@ export function ReportsPage() {
             ))}
           </tbody>
         </table>
+        )} />
         <div style={{ padding: '0 20px 16px', color: 'var(--muted)', fontSize: 12.5 }}>
           Set monthly targets{money ? ' and commission %' : ''} for each person on the Team page (Edit). Records created before this feature are grouped as "Unassigned".
         </div>

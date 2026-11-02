@@ -1,3 +1,4 @@
+import { Paginated } from '@/components/ui/Paginated';
 import { ArrowLeft, Building2, FileText, Globe, Mail, MapPin, Pencil, User } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
@@ -91,6 +92,7 @@ export function ClientProfilePage() {
             <small>{c.jobs?.length ?? 0} total</small>
           </div>
           {c.jobs?.length ? (
+            <Paginated items={c.jobs} render={(pageRows) => (
             <table className="table">
               <thead>
                 <tr>
@@ -99,7 +101,7 @@ export function ClientProfilePage() {
                 </tr>
               </thead>
               <tbody>
-                {c.jobs.map((j) => (
+                {pageRows.map((j) => (
                   <tr key={j.id}>
                     <td>
                       <Link to={'/jobs/' + j.id}>
@@ -111,6 +113,7 @@ export function ClientProfilePage() {
                 ))}
               </tbody>
             </table>
+            )} />
           ) : (
             <Empty title="No jobs for this client yet" />
           )}

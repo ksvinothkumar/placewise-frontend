@@ -1,3 +1,4 @@
+import { Paginated } from '@/components/ui/Paginated';
 import { useQuery } from '@tanstack/react-query';
 import { ExternalLink } from 'lucide-react';
 import type { ReactNode } from 'react';
@@ -188,6 +189,7 @@ export default function DrillDown({ kind, arg, onClose }: { kind: DrillKind; arg
         <Empty title="Nothing here yet" sub="No records match this metric." />
       ) : (
         <>
+          <Paginated items={d.rows} render={(pageRows) => (
           <table className="table" style={{ marginTop: -4 }}>
             <thead>
               <tr>
@@ -197,7 +199,7 @@ export default function DrillDown({ kind, arg, onClose }: { kind: DrillKind; arg
               </tr>
             </thead>
             <tbody>
-              {d.rows.map((r) => (
+              {pageRows.map((r) => (
                 <tr key={r.key} className="click" onClick={() => go(r.go)}>
                   {d.cols.map(([h, f]) => (
                     <td key={h}>{f(r as never)}</td>
@@ -206,6 +208,7 @@ export default function DrillDown({ kind, arg, onClose }: { kind: DrillKind; arg
               ))}
             </tbody>
           </table>
+          )} />
           {d.link && (
             <button className="btn" style={{ marginTop: 18 }} onClick={() => go(d.link![0])}>
               <ExternalLink size={15} />

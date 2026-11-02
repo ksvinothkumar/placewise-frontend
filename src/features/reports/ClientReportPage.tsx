@@ -1,3 +1,4 @@
+import { Paginated } from '@/components/ui/Paginated';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Loader2, Printer, Send } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
@@ -83,6 +84,7 @@ export function ClientReportPage() {
           </div>
           <Sec title="Open roles">
             {r.jobs.length ? (
+              <Paginated items={r.jobs} render={(pageRows) => (
               <table className="table">
                 <thead>
                   <tr>
@@ -96,7 +98,7 @@ export function ClientReportPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {r.jobs.map((j) => (
+                  {pageRows.map((j) => (
                     <tr key={j.id}>
                       <td>
                         <b>{j.title}</b>
@@ -113,6 +115,7 @@ export function ClientReportPage() {
                   ))}
                 </tbody>
               </table>
+              )} />
             ) : (
               <None />
             )}

@@ -1,3 +1,4 @@
+import { Paginated } from '@/components/ui/Paginated';
 import { useQuery } from '@tanstack/react-query';
 import { Loader2, Pencil } from 'lucide-react';
 import { useState } from 'react';
@@ -46,10 +47,11 @@ export function TeamTab() {
       {!data ? (
         <Skeleton />
       ) : (
+        <Paginated items={data.rows} render={(pageRows) => (
         <table className="table">
           <thead><tr><th>Person</th><th>Status</th><th>In</th><th>Out</th><th>Worked</th><th /></tr></thead>
           <tbody>
-            {data.rows.map((r) => (
+            {pageRows.map((r) => (
               <tr key={r.id}>
                 <td><b>{r.name}</b><div style={{ fontSize: 12.5, color: 'var(--muted)' }}>{roleLabel(r.role)}{r.branch ? ' · ' + r.branch : ''}</div></td>
                 <td>
@@ -75,6 +77,7 @@ export function TeamTab() {
             ))}
           </tbody>
         </table>
+        )} />
       )}
       {fix && (
         <Modal

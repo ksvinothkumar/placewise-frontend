@@ -1,3 +1,4 @@
+import { Paginated } from '@/components/ui/Paginated';
 import { Building2, GitBranch, Loader2, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { branchesApi, type Branch, type BranchInput } from '@/api/endpoints/settings';
@@ -48,12 +49,13 @@ export function BranchesTab() {
       {isLoading && !data ? (
         <Skeleton rows={3} />
       ) : data?.length ? (
+        <Paginated items={data} render={(pageRows) => (
         <table className="table" style={{ marginTop: 12 }}>
           <thead>
             <tr><th>Branch</th><th>City</th><th>People</th><th>Jobs</th><th /></tr>
           </thead>
           <tbody>
-            {data.map((b) => (
+            {pageRows.map((b) => (
               <tr key={b.id}>
                 <td><b>{b.name}</b>{b.code && <span className="badge" style={{ marginLeft: 8 }}>{b.code}</span>}</td>
                 <td>{b.city || '—'}</td>
@@ -67,6 +69,7 @@ export function BranchesTab() {
             ))}
           </tbody>
         </table>
+        )} />
       ) : (
         <EmptyState icon={Building2} title="No branches yet" sub="Add one if you work from several offices." />
       )}

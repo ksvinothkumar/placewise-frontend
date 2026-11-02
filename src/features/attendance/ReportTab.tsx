@@ -1,3 +1,4 @@
+import { Paginated } from '@/components/ui/Paginated';
 import { useQuery } from '@tanstack/react-query';
 import { Download } from 'lucide-react';
 import { useState } from 'react';
@@ -28,10 +29,11 @@ export function ReportTab() {
       {!data ? (
         <Skeleton />
       ) : (
+        <Paginated items={data.rows} render={(pageRows) => (
         <table className="table">
           <thead><tr><th>Person</th><th>Present</th><th>Hours</th><th>Leave</th><th>Absent</th><th>Missed check-outs</th></tr></thead>
           <tbody>
-            {data.rows.map((r) => (
+            {pageRows.map((r) => (
               <tr key={r.id}>
                 <td><b>{r.name}</b></td>
                 <td>{r.present}</td>
@@ -43,6 +45,7 @@ export function ReportTab() {
             ))}
           </tbody>
         </table>
+        )} />
       )}
     </div>
   );

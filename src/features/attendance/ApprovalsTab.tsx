@@ -1,3 +1,4 @@
+import { Paginated } from '@/components/ui/Paginated';
 import { Check, Loader2, X as XIcon } from 'lucide-react';
 import { useState } from 'react';
 import { leaveApi, type LeaveRequest } from '@/api/endpoints/attendance';
@@ -46,9 +47,10 @@ export function ApprovalsTab() {
         {!data ? (
           <Skeleton rows={3} />
         ) : pending.length ? (
+          <Paginated items={pending} render={(pageRows) => (
           <table className="table" style={{ marginTop: 10 }}>
             <tbody>
-              {pending.map((x) => (
+              {pageRows.map((x) => (
                 <tr key={x.id}>
                   <td><b>{who(x.user)?.name}</b><div style={{ fontSize: 12.5, color: 'var(--muted)' }}>{x.typeName}</div></td>
                   <td>{range(x)}<div style={{ fontSize: 12.5, color: 'var(--muted)' }}>{x.days} day{x.days === 1 ? '' : 's'}</div></td>
@@ -67,6 +69,7 @@ export function ApprovalsTab() {
               ))}
             </tbody>
           </table>
+          )} />
         ) : (
           <EmptyState title="Nothing waiting" sub="New leave requests will appear here." />
         )}
@@ -74,9 +77,10 @@ export function ApprovalsTab() {
       {done.length > 0 && (
         <div className="card">
           <div className="card-h"><h3>Recent decisions</h3></div>
+          <Paginated items={done} render={(pageRows) => (
           <table className="table" style={{ marginTop: 10 }}>
             <tbody>
-              {done.map((x) => (
+              {pageRows.map((x) => (
                 <tr key={x.id}>
                   <td><b>{who(x.user)?.name}</b></td>
                   <td>{x.typeName}</td>
@@ -87,6 +91,7 @@ export function ApprovalsTab() {
               ))}
             </tbody>
           </table>
+          )} />
         </div>
       )}
       {dec && (

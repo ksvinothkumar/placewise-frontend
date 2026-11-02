@@ -1,3 +1,4 @@
+import { Paginated } from '@/components/ui/Paginated';
 import { ExternalLink } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -199,6 +200,7 @@ export function DrillDown({ kind, arg, onClose }: { kind: string; arg?: string; 
         <EmptyState title="Nothing here yet" sub="No records match this metric." />
       ) : (
         <>
+          <Paginated items={d.rows} render={(pageRows) => (
           <table className="table" style={{ marginTop: -4 }}>
             <thead>
               <tr>
@@ -208,7 +210,7 @@ export function DrillDown({ kind, arg, onClose }: { kind: string; arg?: string; 
               </tr>
             </thead>
             <tbody>
-              {d.rows.map((r) => (
+              {pageRows.map((r) => (
                 <tr key={r.key} className="click" onClick={() => go(r.go)}>
                   {d.cols.map(([h, f]) => (
                     <td key={h}>{f(r as never)}</td>
@@ -217,6 +219,7 @@ export function DrillDown({ kind, arg, onClose }: { kind: string; arg?: string; 
               ))}
             </tbody>
           </table>
+          )} />
           {d.link && (
             <button className="btn" style={{ marginTop: 18 }} onClick={() => go(d.link![0])}>
               <ExternalLink size={15} />

@@ -1,3 +1,4 @@
+import { Paginated } from '@/components/ui/Paginated';
 import { useQueryClient } from '@tanstack/react-query';
 import { Loader2, X as XIcon } from 'lucide-react';
 import { useState } from 'react';
@@ -110,6 +111,7 @@ export function BulkImport({ onClose }: { onClose: () => void }) {
             {res.duplicates > 0 && <span className="badge warn">{res.duplicates} already in the pool</span>}
             {res.failed > 0 && <span className="badge bad">{res.failed} could not be read</span>}
           </div>
+          <Paginated items={res.results} render={(pageRows) => (
           <table className="table">
             <thead>
               <tr>
@@ -118,7 +120,7 @@ export function BulkImport({ onClose }: { onClose: () => void }) {
               </tr>
             </thead>
             <tbody>
-              {res.results.map((r, i) => (
+              {pageRows.map((r, i) => (
                 <tr key={i}>
                   <td>{r.file}</td>
                   <td>
@@ -141,6 +143,7 @@ export function BulkImport({ onClose }: { onClose: () => void }) {
               ))}
             </tbody>
           </table>
+          )} />
         </>
       )}
     </Modal>

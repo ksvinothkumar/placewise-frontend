@@ -1,3 +1,4 @@
+import { Paginated } from '@/components/ui/Paginated';
 import { AlertTriangle, CheckCircle2, FileText, Plus, ShieldCheck, Wallet } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -115,6 +116,7 @@ export function InvoicesPage() {
         {isLoading ? (
           <Skeleton />
         ) : data?.length ? (
+          <Paginated items={data} render={(pageRows) => (
           <table className="table">
             <thead>
               <tr>
@@ -128,7 +130,7 @@ export function InvoicesPage() {
               </tr>
             </thead>
             <tbody>
-              {data.map((i) => (
+              {pageRows.map((i) => (
                 <tr key={i.id} className="click" onClick={() => nav('/invoices/' + i.id)}>
                   <td>
                     <b>{i.number}</b>
@@ -158,6 +160,7 @@ export function InvoicesPage() {
               ))}
             </tbody>
           </table>
+          )} />
         ) : (
           <EmptyState icon={FileText} title="No invoices here" sub="A draft invoice is created automatically when a candidate is placed." />
         )}
