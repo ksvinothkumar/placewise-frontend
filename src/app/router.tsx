@@ -48,6 +48,7 @@ export const routes: RouteObject[] = [
           { path: 'portal/jobs/:id', ...page(() => import('@/pages/PortalJobPage')) },
           { path: 'tasks', ...page(() => import('@/pages/TasksPage')) },
           { path: 'notes', ...page(() => import('@/pages/NotesPage')) },
+          { path: 'org', ...page(() => import('@/pages/OrgChartPage')) },
           { path: 'chat', ...page(() => import('@/pages/ChatPage')) },
           { path: 'chat/:id', ...page(() => import('@/pages/ChatPage')) },
           { path: 'profile', ...page(() => import('@/pages/ProfilePage')) },

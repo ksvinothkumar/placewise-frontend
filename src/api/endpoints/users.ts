@@ -51,6 +51,16 @@ export interface UpdateUserInput {
   monthlyTarget?: number | '';
   commissionPct?: number | '';
 }
+/** One person in the org chart: the directory fields every team member may see. */
+export interface OrgMember {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  title?: string;
+  manager: string | null;
+  photoAt?: string | null;
+}
 export interface CreateUserResult {
   user: TeamUser;
   /** present when no email carried it, or the email failed */
@@ -65,6 +75,7 @@ export interface ResetPasswordResult {
 export const usersApi = {
   base: '/users',
   list: () => http.get<TeamUser[]>('/users'),
+  org: () => http.get<OrgMember[]>('/users/org'),
   create: (body: CreateUserInput) => http.post<CreateUserResult>('/users', body),
   update: (id: string, body: UpdateUserInput) => http.put<TeamUser>(`/users/${id}`, body),
   resetPassword: (id: string, sendEmail = true) => http.post<ResetPasswordResult>(`/users/${id}/reset-password`, { sendEmail }),

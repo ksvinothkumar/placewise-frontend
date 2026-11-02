@@ -12,6 +12,7 @@ import {
   LayoutDashboard,
   ListChecks,
   MessageSquare,
+  Network,
   Plug,
   Radar,
   ScrollText,
@@ -58,6 +59,7 @@ export const GROUPS: readonly (readonly [string, readonly NavItem[]])[] = [
     [
       { to: '/chat', icon: MessageSquare, label: 'Chat' },
       { to: '/notes', icon: StickyNote, label: 'Notes' },
+      { to: '/org', icon: Network, label: 'Org chart' },
       { to: '/attendance', icon: CalendarCheck, label: 'Attendance', perm: 'attendance:self' },
       { to: '/users', icon: ShieldCheck, label: 'Team', perm: 'users:manage' },
       { to: '/registrations', icon: ClipboardCheck, label: 'Registrations', perm: 'registrations:manage' },
@@ -79,6 +81,7 @@ export const TITLES: Record<string, string> = {
   reports: 'Reports',
   tasks: 'Tasks',
   notes: 'Notes',
+  org: 'Org chart',
   invoices: 'Invoices',
   audit: 'Audit log',
   registrations: 'Registrations',
