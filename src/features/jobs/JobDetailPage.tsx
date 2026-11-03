@@ -10,6 +10,7 @@ import { useApiMutation } from '@/api/hooks';
 import { useJob } from '@/api/queries/jobs';
 import { pipelineOf, usePipelines } from '@/api/queries/pipelines';
 import { queryKeys } from '@/api/queryKeys';
+import { CandidateGlance } from '@/components/business/CandidateGlance';
 import { CandidateDrawer } from '@/components/forms';
 import { Avatar, Chips, Empty, ScoreRing, Skeleton, StageBadge } from '@/components/ui';
 import { money } from '@/lib/format';
@@ -227,6 +228,7 @@ export function JobDetailPage() {
                       <Avatar name={a.candidate.name} size={32} />
                       <div style={{ flex: 1 }}>
                         <b>{a.candidate.name}</b>
+                        <CandidateGlance candidate={a.candidate} />
                       </div>
                       <StageBadge stage={a.stage} />
                       <ScoreRing score={a.score} size={34} />

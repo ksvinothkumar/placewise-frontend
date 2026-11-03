@@ -28,6 +28,7 @@ export interface CandidateRef {
   exp?: number;
   expected?: number;
   skills?: string[];
+  summary?: string;
   source?: string;
 }
 export type ClientDecision = 'interested' | 'hold' | 'not_fit';

@@ -3,6 +3,7 @@ import { useApiQuery, asList } from '@/api/hooks';
 import { pipelineOf, usePipelines } from '@/api/queries/pipelines';
 import type { Application } from '@/api/endpoints/applications';
 import { CandidateDrawer } from '@/components/business/CandidateDrawer';
+import { CandidateGlance } from '@/components/business/CandidateGlance';
 import { Kanban } from '@/components/Kanban';
 import { ScoreRing } from '@/components/ui/Badges';
 import { PageHead } from '@/components/ui/Layout';
@@ -53,6 +54,7 @@ export function PipelinePage() {
           </div>
           <ScoreRing score={a.score} size={38} />
         </div>
+        <CandidateGlance candidate={a.candidate} maxSkills={4} />
         <div className="f">
           <span>{a.job.client?.name}</span>
           <span style={{ marginLeft: 'auto' }}>{a.daysInStage}d</span>

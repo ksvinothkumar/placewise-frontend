@@ -42,7 +42,7 @@ export interface JobMatch {
 
 export interface JobDetail extends Job {
   matches: JobMatch[];
-  applications: { id: string; stage: string; score: number; candidate: { id: string; name: string } }[];
+  applications: { id: string; stage: string; score: number; candidate: { id: string; name: string; title?: string; exp?: number; city?: string; summary?: string; skills?: string[] } }[];
   booleanString: string;
 }
 
