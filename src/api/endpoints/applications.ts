@@ -14,6 +14,7 @@ export interface JobRef {
   city?: string;
   openedAt?: string;
   openings?: number;
+  pipelineId?: string;
   client?: ClientRef;
 }
 export interface CandidateRef {

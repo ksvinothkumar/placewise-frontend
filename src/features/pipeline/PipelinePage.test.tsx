@@ -108,8 +108,13 @@ describe('PipelinePage stage moves', () => {
 });
 
 describe('PipelinePage client filter', () => {
-  it('shows only the chosen client\'s candidates and narrows the job list', async () => {
-    const other = { ...APP, id: 'a2', candidate: { id: 'c2', name: 'Ben Roy' }, job: { id: 'j2', title: 'Designer', client: { id: 'cl2', name: 'Zeta' } } };
+  it("shows only the chosen client's candidates and narrows the job list", async () => {
+    const other = {
+      ...APP,
+      id: 'a2',
+      candidate: { id: 'c2', name: 'Ben Roy' },
+      job: { id: 'j2', title: 'Designer', client: { id: 'cl2', name: 'Zeta' } },
+    };
     server.use(
       msw.get(`${API}/jobs`, () =>
         ok([
@@ -130,7 +135,56 @@ describe('PipelinePage client filter', () => {
     expect(screen.queryByText('Asha Rao')).toBeNull();
     expect(screen.getByText('Ben Roy')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Filter by job' }));
-    const jobs = within(screen.getByRole('listbox', { name: 'Filter by job' })).getAllByRole('option').map((o) => o.textContent);
+    const jobs = within(screen.getByRole('listbox', { name: 'Filter by job' }))
+      .getAllByRole('option')
+      .map((o) => o.textContent);
     expect(jobs).toEqual(['All jobs', 'Designer · Zeta']);
+  });
+});
+
+describe('PipelinePage with several pipelines', () => {
+  const stage = (key: string, name: string, kind: string) => ({ key, name, color: '#123456', kind, prob: 0.1 });
+  const DEFAULT = [stage('s', 'Sourced', 'start'), stage('p', 'Placed', 'placed'), stage('r', 'Rejected', 'rejected')];
+  const CONTRACT = [stage('c_bench', 'Bench', 'start'), stage('c_p', 'Placed', 'placed'), stage('c_r', 'Rejected', 'rejected')];
+
+  it('shows the lanes and candidates of the chosen pipeline only', async () => {
+    server.use(
+      msw.get(`${API}/settings`, () =>
+        ok({
+          stages: DEFAULT,
+          crmStages: [],
+          contactStages: [],
+          pipelines: [
+            { id: 'default', name: 'Permanent', stages: DEFAULT },
+            { id: 'pl_c', name: 'Contract', stages: CONTRACT },
+          ],
+        }),
+      ),
+      msw.get(`${API}/jobs`, () =>
+        ok([
+          { id: 'j1', title: 'Backend Engineer', client: { name: 'Acme' } },
+          { id: 'j2', title: 'Support Staff', client: { name: 'Acme' }, pipelineId: 'pl_c' },
+        ]),
+      ),
+      msw.get(`${API}/applications`, () =>
+        ok([
+          APP,
+          {
+            ...APP,
+            id: 'a2',
+            stage: 'Bench',
+            candidate: { id: 'c2', name: 'Dev Patel' },
+            job: { id: 'j2', title: 'Support Staff', client: { id: 'cl1', name: 'Acme' }, pipelineId: 'pl_c' },
+          },
+        ]),
+      ),
+    );
+    renderWithProviders(<PipelinePage />);
+    expect(await screen.findByText('Asha Rao')).toBeInTheDocument();
+    expect(screen.queryByText('Dev Patel')).toBeNull();
+    fireEvent.change(await screen.findByLabelText('Pipeline'), { target: { value: 'pl_c' } });
+    expect(await screen.findByText('Dev Patel')).toBeInTheDocument();
+    expect(screen.queryByText('Asha Rao')).toBeNull();
+    expect(within(lane('Bench')).getByText('Dev Patel')).toBeInTheDocument();
   });
 });

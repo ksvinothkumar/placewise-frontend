@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useApiQuery, asList } from '@/api/hooks';
+import { pipelineOf, usePipelines } from '@/api/queries/pipelines';
 import type { Application } from '@/api/endpoints/applications';
 import { CandidateDrawer } from '@/components/business/CandidateDrawer';
 import { Kanban } from '@/components/Kanban';
@@ -16,6 +17,7 @@ interface JobOption {
   id: string;
   title: string;
   client?: { id?: string; name: string };
+  pipelineId?: string;
 }
 
 /** Jobs and applications both carry the client; match on id when there is one, else on name. */
@@ -24,14 +26,21 @@ const clientKey = (c?: { id?: string; name: string }) => (c ? (c.id ?? c.name) :
 export function PipelinePage() {
   const [job, setJob] = useState('');
   const [client, setClient] = useState('');
+  const [pl, setPl] = useState('');
   const [open, setOpen] = useState<string | null>(null);
   const jobs = useApiQuery<JobOption[] | { items: JobOption[] }>('/jobs');
   const { data: apps, isLoading } = useApplications(job);
   const move = useMoveStage(job);
-  const allJobs = asList(jobs.data);
-  const clients = [...new Map(allJobs.filter((j) => j.client).map((j) => [clientKey(j.client), j.client!.name])).entries()].sort((a, b) => a[1].localeCompare(b[1]));
+  const { pipelines, multi } = usePipelines();
+  const current = pipelineOf(pipelines, pl);
+  const inCurrent = (p?: string) => !multi || (p || 'default') === (current?.id ?? 'default');
+  const allJobs = asList(jobs.data).filter((j) => inCurrent(j.pipelineId));
+  const clients = [...new Map(allJobs.filter((j) => j.client).map((j) => [clientKey(j.client), j.client!.name])).entries()].sort((a, b) =>
+    a[1].localeCompare(b[1]),
+  );
   const jobOptions = client ? allJobs.filter((j) => clientKey(j.client) === client) : allJobs;
-  const list = (apps ?? []).filter((a) => !client || clientKey(a.job.client) === client);
+  const list = (apps ?? []).filter((a) => inCurrent(a.job.pipelineId) && (!client || clientKey(a.job.client) === client));
+  const lanes = multi && current ? current.stages.map((s) => s.name) : STAGES;
 
   const card = (a: Application) => {
     const d = a.clientFeedback?.decision ? DECISION[a.clientFeedback.decision] : null;
@@ -61,6 +70,25 @@ export function PipelinePage() {
   return (
     <>
       <PageHead title="Pipeline" sub="Drag candidates between stages. Moving to Placed books the fee.">
+        {multi && (
+          <select
+            className="select"
+            aria-label="Pipeline"
+            style={{ width: 190 }}
+            value={current?.id ?? ''}
+            onChange={(e) => {
+              setPl(e.target.value);
+              setClient('');
+              setJob('');
+            }}
+          >
+            {pipelines.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+        )}
         <SearchSelect
           label="Filter by client"
           allLabel="All clients"
@@ -87,7 +115,7 @@ export function PipelinePage() {
         </div>
       ) : (
         <Kanban
-          lanes={STAGES.map((st) => {
+          lanes={lanes.map((st) => {
             const items = list.filter((a) => a.stage === st);
             return {
               id: st,

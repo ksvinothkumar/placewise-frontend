@@ -1,6 +1,7 @@
 import { useState, type ChangeEvent } from 'react';
 import { jobsApi, type Job, type JobInput } from '@/api/endpoints/jobs';
 import { useBranches, useClients } from '@/api/queries/jobs';
+import { usePipelines } from '@/api/queries/pipelines';
 import { queryKeys } from '@/api/queryKeys';
 import { AiButton, useAi } from '@/components/business/ai';
 import { Field, Modal } from '@/components/ui';
@@ -8,7 +9,7 @@ import { CITIES } from '@/lib/format';
 import { FormFoot } from './FormFoot';
 import { useSave } from './useSave';
 
-type JobDraft = Record<keyof Omit<JobInput, 'branch'>, string | number | boolean> & { branch: string };
+type JobDraft = Record<keyof Omit<JobInput, 'branch' | 'pipelineId'>, string | number | boolean> & { branch: string; pipelineId: string };
 
 /** Pure validation, exported for tests. Returns the first problem, or '' when the draft can be saved. */
 export function jobProblem(v: Pick<JobDraft, 'title' | 'expMin' | 'expMax' | 'salMin' | 'salMax' | 'openings'>): string {
@@ -23,6 +24,7 @@ export function JobForm({ onClose, onSaved }: { onClose: () => void; onSaved?: (
   const aiw = useAi();
   const { data: branches } = useBranches();
   const { data: clients } = useClients();
+  const { pipelines, multi } = usePipelines();
   const [v, setV] = useState<JobDraft>({
     title: '',
     client: '',
@@ -38,6 +40,7 @@ export function JobForm({ onClose, onSaved }: { onClose: () => void; onSaved?: (
     description: '',
     public: false,
     branch: '',
+    pipelineId: '',
   });
   const [touched, setTouched] = useState(false);
   const set = (k: keyof JobDraft) => (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
@@ -55,8 +58,16 @@ export function JobForm({ onClose, onSaved }: { onClose: () => void; onSaved?: (
         salMax: +v.salMax,
         openings: +v.openings,
         branch: v.branch || undefined,
+        pipelineId: v.pipelineId || undefined,
       }),
-    { ok: 'Job created', invalidate: [queryKeys.jobs.all, queryKeys.clients.all], onDone: (j) => { onClose(); onSaved?.(j); } },
+    {
+      ok: 'Job created',
+      invalidate: [queryKeys.jobs.all, queryKeys.clients.all],
+      onDone: (j) => {
+        onClose();
+        onSaved?.(j);
+      },
+    },
   );
   const submit = () => {
     setTouched(true);
@@ -115,6 +126,17 @@ export function JobForm({ onClose, onSaved }: { onClose: () => void; onSaved?: (
       <Field label="Required skills (comma separated)">
         <input className="input" placeholder="python, sql, aws" value={v.skills as string} onChange={set('skills')} />
       </Field>
+      {multi && (
+        <Field label="Hiring pipeline">
+          <select className="select" aria-label="Hiring pipeline" value={v.pipelineId} onChange={set('pipelineId')}>
+            {pipelines.map((pl) => (
+              <option key={pl.id} value={pl.id === 'default' ? '' : pl.id}>
+                {pl.name}
+              </option>
+            ))}
+          </select>
+        </Field>
+      )}
       {!!branches?.length && (
         <Field label="Branch">
           <select className="select" value={v.branch} onChange={set('branch')}>

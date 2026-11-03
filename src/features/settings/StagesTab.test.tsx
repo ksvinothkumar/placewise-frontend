@@ -9,7 +9,12 @@ import { StagesTab } from './StagesTab';
 vi.setConfig({ testTimeout: 30_000 });
 
 const stage = (key: string, name: string, kind: string, prob: number) => ({ key, name, color: '#123456', kind, prob });
-const STAGES = [stage('sourced', 'Sourced', 'start', 0.05), stage('screening', 'Screening', 'custom', 0.1), stage('placed', 'Placed', 'placed', 1), stage('rejected', 'Rejected', 'rejected', 0)];
+const STAGES = [
+  stage('sourced', 'Sourced', 'start', 0.05),
+  stage('screening', 'Screening', 'custom', 0.1),
+  stage('placed', 'Placed', 'placed', 1),
+  stage('rejected', 'Rejected', 'rejected', 0),
+];
 const SETTINGS = { stages: STAGES, crmStages: [], contactStages: [] };
 
 function boot(onPut?: (b: unknown) => Response | undefined) {
@@ -110,7 +115,16 @@ describe('StagesTab editor', () => {
       msw.put(`${API}/settings/stages`, async ({ request }) => {
         bodies.push((await request.json()) as (typeof bodies)[number]);
         return bodies.length === 1
-          ? Response.json({ error: { code: 'STAGE_IN_USE', message: '1 candidate is in "Screening". Choose where to move them.', details: { stage: 'screening', count: 1 } } }, { status: 409 })
+          ? Response.json(
+              {
+                error: {
+                  code: 'STAGE_IN_USE',
+                  message: '1 candidate is in "Screening". Choose where to move them.',
+                  details: { stage: 'screening', count: 1 },
+                },
+              },
+              { status: 409 },
+            )
           : ok({ ok: true });
       }),
     );
@@ -123,5 +137,43 @@ describe('StagesTab editor', () => {
     fireEvent.click(within(dlg).getByRole('button', { name: /move and delete/i }));
     await waitFor(() => expect(bodies).toHaveLength(2));
     expect(bodies[1]!.moves).toEqual({ screening: 'Sourced' });
+  });
+});
+
+describe('StagesTab pipelines', () => {
+  const CONTRACT = [
+    stage('c_new', 'Bench', 'start', 0.1),
+    stage('c_placed', 'Placed', 'placed', 1),
+    stage('c_rejected', 'Rejected', 'rejected', 0),
+  ];
+  const WITH = {
+    ...SETTINGS,
+    pipelines: [
+      { id: 'default', name: 'Permanent', stages: STAGES },
+      { id: 'pl_c', name: 'Contract', stages: CONTRACT },
+    ],
+  };
+
+  it('switches to another pipeline, edits its stages and saves them through the pipelines endpoint', async () => {
+    let put: { pipelines: Array<{ id: string; name: string; stages: Array<{ name: string }> }> } | undefined;
+    server.use(
+      msw.get(`${API}/settings`, () => ok(WITH)),
+      msw.get(`${API}/settings/stage-usage`, () => ok({})),
+      msw.get(`${API}/auth/me`, () => ok({ user: { id: 'u1', name: 'T', email: 't@x.io', role: 'admin' }, permissions: ['*'] })),
+      msw.put(`${API}/settings/pipelines`, async ({ request }) => {
+        put = (await request.json()) as typeof put;
+        return ok({ pipelines: [] });
+      }),
+    );
+    renderWithProviders(<StagesTab />);
+    fireEvent.click(await screen.findByRole('tab', { name: 'Contract' }));
+    expect(await screen.findByDisplayValue('Bench')).toBeInTheDocument();
+    expect(screen.queryByDisplayValue('Screening')).toBeNull();
+    fireEvent.change(screen.getByLabelText('Name of stage 1'), { target: { value: 'On bench' } });
+    fireEvent.click(screen.getByRole('button', { name: /save stages/i }));
+    await waitFor(() => expect(put).toBeDefined());
+    expect(put!.pipelines).toHaveLength(1);
+    expect(put!.pipelines[0]).toMatchObject({ id: 'pl_c', name: 'Contract' });
+    expect(put!.pipelines[0]!.stages[0]!.name).toBe('On bench');
   });
 });

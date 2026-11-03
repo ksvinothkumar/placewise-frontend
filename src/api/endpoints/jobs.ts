@@ -23,6 +23,8 @@ export interface Job {
   priority: 'High' | 'Medium' | 'Low';
   status: 'open' | 'filled' | 'on-hold' | string;
   public?: boolean;
+  /** the hiring pipeline; none means the default one */
+  pipelineId?: string;
   description?: string;
   daysOpen?: number;
   pipelineCount?: number;
@@ -59,6 +61,7 @@ export interface JobInput {
   description: string;
   public: boolean;
   branch?: string;
+  pipelineId?: string;
 }
 
 export const jobsApi = {

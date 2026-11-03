@@ -8,6 +8,7 @@ import { jobsApi } from '@/api/endpoints/jobs';
 import { errorMessage } from '@/api/errors';
 import { useApiMutation } from '@/api/hooks';
 import { useJob } from '@/api/queries/jobs';
+import { pipelineOf, usePipelines } from '@/api/queries/pipelines';
 import { queryKeys } from '@/api/queryKeys';
 import { CandidateDrawer } from '@/components/forms';
 import { Avatar, Chips, Empty, ScoreRing, Skeleton, StageBadge } from '@/components/ui';
@@ -22,6 +23,8 @@ export function JobDetailPage() {
   const nav = useNavigate();
   const qc = useQueryClient();
   const canDelete = useCan('jobs:delete');
+  const canEdit = useCan('jobs:write');
+  const { pipelines, multi } = usePipelines();
   const { data: j, isLoading, error } = useJob(id);
   const [open, setOpen] = useState<string | null>(null);
   const [why, setWhy] = useState<{ id: string; name: string } | null>(null);
@@ -32,6 +35,14 @@ export function JobDetailPage() {
     onSuccess: () => toast('Added to pipeline'),
     onError: (e) => toast(errorMessage(e), 'error'),
   });
+  const setPipeline = useApiMutation(
+    (pipelineId: string) => jobsApi.update(id, { pipelineId: pipelineId === 'default' ? '' : pipelineId }),
+    {
+      invalidate: refresh,
+      onSuccess: () => toast('Hiring pipeline changed'),
+      onError: (e) => toast(errorMessage(e), 'error'),
+    },
+  );
   const remove = async () => {
     if (!confirm('Delete this job and its pipeline?')) return;
     try {
@@ -83,6 +94,25 @@ export function JobDetailPage() {
             <div style={{ marginTop: 12 }}>
               <Chips items={j.skills} />
             </div>
+            {multi && (
+              <label style={{ display: 'block', marginTop: 12, fontSize: 12.5, color: 'var(--text2)' }}>
+                Hiring pipeline
+                <select
+                  className="select"
+                  aria-label="Hiring pipeline"
+                  style={{ display: 'block', width: 220 }}
+                  disabled={!canEdit || setPipeline.isPending}
+                  value={pipelineOf(pipelines, j.pipelineId)?.id}
+                  onChange={(e) => setPipeline.mutate(e.target.value)}
+                >
+                  {pipelines.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
           </div>
           {canDelete && (
             <button className="btn danger" onClick={remove}>
@@ -100,65 +130,76 @@ export function JobDetailPage() {
             <small>skills 55% · experience 20% · salary 15% · location 10%</small>
           </div>
           {j.matches.length ? (
-            <Paginated items={j.matches} render={(pageRows) => (
-            <table className="table" style={{ marginTop: 12 }}>
-              <thead>
-                <tr>
-                  <th>Candidate</th>
-                  <th>Score</th>
-                  <th>Skills</th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                {pageRows.map((m) => (
-                  <tr key={m.candidate.id}>
-                    <td>
-                      <div
-                        className="who"
-                        style={{ cursor: 'pointer' }}
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => setOpen(m.candidate.id)}
-                        onKeyDown={(e) => e.key === 'Enter' && setOpen(m.candidate.id)}
-                      >
-                        <Avatar name={m.candidate.name} />
-                        <div>
-                          <b>{m.candidate.name}</b>
-                          <span>
-                            {m.candidate.title} · {m.candidate.exp}y · {m.candidate.city}
-                          </span>
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <ScoreRing score={m.score} />
-                    </td>
-                    <td style={{ maxWidth: 280 }}>
-                      <Chips items={j.skills} hit={m.hit} miss={m.missing} />
-                      {m.notes
-                        .filter((n) => !n.startsWith('Missing'))
-                        .map((n) => (
-                          <div key={n} style={{ fontSize: 12, color: 'var(--muted)' }}>
-                            {n}
+            <Paginated
+              items={j.matches}
+              render={(pageRows) => (
+                <table className="table" style={{ marginTop: 12 }}>
+                  <thead>
+                    <tr>
+                      <th>Candidate</th>
+                      <th>Score</th>
+                      <th>Skills</th>
+                      <th />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pageRows.map((m) => (
+                      <tr key={m.candidate.id}>
+                        <td>
+                          <div
+                            className="who"
+                            style={{ cursor: 'pointer' }}
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => setOpen(m.candidate.id)}
+                            onKeyDown={(e) => e.key === 'Enter' && setOpen(m.candidate.id)}
+                          >
+                            <Avatar name={m.candidate.name} />
+                            <div>
+                              <b>{m.candidate.name}</b>
+                              <span>
+                                {m.candidate.title} · {m.candidate.exp}y · {m.candidate.city}
+                              </span>
+                            </div>
                           </div>
-                        ))}
-                    </td>
-                    <td style={{ whiteSpace: 'nowrap' }}>
-                      <button className="btn sm ghost" title="Why this score?" onClick={() => setWhy({ id: m.candidate.id, name: m.candidate.name })}>
-                        <Sparkles size={13} />
-                        Why?
-                      </button>{' '}
-                      <button className="btn sm primary" aria-label={`Add ${m.candidate.name}`} onClick={() => add.mutate(m.candidate.id)}>
-                        <Plus size={14} />
-                        Add
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            )} />
+                        </td>
+                        <td>
+                          <ScoreRing score={m.score} />
+                        </td>
+                        <td style={{ maxWidth: 280 }}>
+                          <Chips items={j.skills} hit={m.hit} miss={m.missing} />
+                          {m.notes
+                            .filter((n) => !n.startsWith('Missing'))
+                            .map((n) => (
+                              <div key={n} style={{ fontSize: 12, color: 'var(--muted)' }}>
+                                {n}
+                              </div>
+                            ))}
+                        </td>
+                        <td style={{ whiteSpace: 'nowrap' }}>
+                          <button
+                            className="btn sm ghost"
+                            title="Why this score?"
+                            onClick={() => setWhy({ id: m.candidate.id, name: m.candidate.name })}
+                          >
+                            <Sparkles size={13} />
+                            Why?
+                          </button>{' '}
+                          <button
+                            className="btn sm primary"
+                            aria-label={`Add ${m.candidate.name}`}
+                            onClick={() => add.mutate(m.candidate.id)}
+                          >
+                            <Plus size={14} />
+                            Add
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            />
           ) : (
             <Empty title="Everyone is in this pipeline" />
           )}

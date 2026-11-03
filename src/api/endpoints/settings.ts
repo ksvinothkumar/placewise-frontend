@@ -83,9 +83,22 @@ export interface AutomationSettings {
   rules: Record<string, StageAutomation>;
 }
 
+/** A hiring pipeline. `default` is the built-in one; every job without a pipeline uses it. */
+export interface PipelineDef {
+  id: string;
+  name: string;
+  stages: StageDef[];
+}
+export interface PipelineInput {
+  id?: string;
+  name: string;
+  stages: StageInput[];
+}
+
 /** GET /settings: stages for everyone, the rest only for `settings:manage`. */
 export interface SettingsView extends Partial<LeavePolicy> {
   stages: StageDef[];
+  pipelines?: PipelineDef[];
   crmStages: CrmStageDef[];
   contactStages: CrmStageDef[];
   company?: CompanyInfo;
@@ -111,6 +124,9 @@ export const settingsApi = {
   /** candidates per stage name */
   stageUsage: () => http.get<Record<string, number>>('/settings/stage-usage'),
   saveStages: (stages: StageInput[], moves?: Record<string, string>) => http.put<unknown>('/settings/stages', { stages, moves }),
+  /** The extra pipelines (the default one is saved with saveStages); `moves` says where to put candidates of a removed stage. */
+  savePipelines: (pipelines: PipelineInput[], opts: { defaultName?: string; moves?: Record<string, string> } = {}) =>
+    http.put<{ pipelines: PipelineDef[] }>('/settings/pipelines', { pipelines, ...opts }),
   saveCrmStages: (which: CrmStageGroup, stages: CrmStageInput[], moves?: Record<string, string>) =>
     http.put<unknown>(`/settings/crm-stages/${which}`, { stages, moves }),
   saveCompany: (company: CompanyInfo) => http.put<unknown>('/settings/company', company),
