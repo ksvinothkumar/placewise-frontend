@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Building2, Copy, Mail, Phone, Plus, Trash2 } from 'lucide-react';
+import { Building2, Copy, Mail, Phone, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { applicationsApi } from '@/api/endpoints/applications';
@@ -7,7 +7,8 @@ import { candidateToolsApi } from '@/api/endpoints/candidate-tools';
 import { errorMessage } from '@/api/errors';
 import { queryKeys } from '@/api/queryKeys';
 import { CandidatePhoto } from '@/components/ui/Avatar';
-import { Chips, ScoreRing, StageBadge } from '@/components/ui/Badges';
+import { Chips, StageBadge } from '@/components/ui/Badges';
+import { BestFitJobs } from '@/components/business/BestFitJobs';
 import { Drawer } from '@/components/ui/Modal';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { money, waLink } from '@/lib/format';
@@ -30,8 +31,10 @@ export function CandidateDrawer({ id, onClose }: { id: string; onClose: () => vo
       toast('Added to pipeline');
       void qc.invalidateQueries({ queryKey: queryKeys.applications.all });
       void qc.invalidateQueries({ queryKey: queryKeys.candidates.all });
+      return true;
     } catch (e) {
       toast(errorMessage(e), 'error');
+      return false;
     }
   };
   const email = async (appId: string, kind: string) => {
@@ -122,26 +125,7 @@ export function CandidateDrawer({ id, onClose }: { id: string; onClose: () => vo
           </div>
           <div className="sec">
             <h4>Best-fit open jobs</h4>
-            {c.bestJobs.map((b) => (
-              <div key={b.job.id} className="who" style={{ padding: '9px 0', borderBottom: '1px solid var(--line2)' }}>
-                <ScoreRing score={b.score} size={40} />
-                <div style={{ flex: 1 }}>
-                  <b>{b.job.title}</b>
-                  <span>
-                    {b.job.client?.name}
-                    {b.notes.length ? ' · ' + b.notes[0] : ' · Strong fit'}
-                  </span>
-                </div>
-                {b.inPipeline ? (
-                  <span className="badge">In pipeline</span>
-                ) : (
-                  <button className="btn sm primary" onClick={() => void add(b.job.id)}>
-                    <Plus size={14} />
-                    Add
-                  </button>
-                )}
-              </div>
-            ))}
+            <BestFitJobs jobs={c.bestJobs} onAdd={add} />
           </div>
           {c.applications.length > 0 && (
             <div className="sec">

@@ -9,6 +9,7 @@ import type { JobRef } from '@/api/endpoints/applications';
 import { applicationsApi } from '@/api/endpoints/applications';
 import { candidatesApi } from '@/api/endpoints/candidates';
 import { errorMessage } from '@/api/errors';
+import { BestFitJobs } from '@/components/business/BestFitJobs';
 import { useApiMutation } from '@/api/hooks';
 import { useCandidate, useCandidateTasks } from '@/api/queries/candidates';
 import { queryKeys } from '@/api/queryKeys';
@@ -402,26 +403,7 @@ export function CandidateProfilePage() {
               <h3>Best-fit open jobs</h3>
             </div>
             <div className="card-b">
-              {c.bestJobs.map((b) => (
-                <div key={b.job.id} className="who" style={{ padding: '9px 0', borderBottom: '1px solid var(--line2)' }}>
-                  <ScoreRing score={b.score} size={40} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <b>{b.job.title}</b>
-                    <span>
-                      {b.job.client?.name}
-                      {b.notes.length ? ' · ' + b.notes[0] : ' · Strong fit'}
-                    </span>
-                  </div>
-                  {b.inPipeline ? (
-                    <span className="badge">In pipeline</span>
-                  ) : (
-                    <button className="btn sm primary" aria-label={`Add to ${b.job.title}`} onClick={() => add.mutate(b.job.id)}>
-                      <Plus size={14} />
-                      Add
-                    </button>
-                  )}
-                </div>
-              ))}
+              <BestFitJobs jobs={c.bestJobs} onAdd={(job) => add.mutateAsync(job).then(() => true, () => false)} />
             </div>
           </div>
           <div className="card">

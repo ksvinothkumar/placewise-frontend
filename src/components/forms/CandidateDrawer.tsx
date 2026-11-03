@@ -1,17 +1,18 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { Building2, Copy, Mail, Phone, Plus, Trash2 } from 'lucide-react';
+import { Building2, Copy, Mail, Phone, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { applicationsApi } from '@/api/endpoints/applications';
 import { candidatesApi } from '@/api/endpoints/candidates';
 import { errorMessage } from '@/api/errors';
+import { useApiMutation } from '@/api/hooks';
 import { useCandidate } from '@/api/queries/candidates';
 import { queryKeys } from '@/api/queryKeys';
-import { CandidatePhoto, Chips, Drawer, ScoreRing, Skeleton, StageBadge } from '@/components/ui';
+import { BestFitJobs } from '@/components/business/BestFitJobs';
+import { CandidatePhoto, Chips, Drawer, Skeleton, StageBadge } from '@/components/ui';
 import { money, waLink } from '@/lib/format';
 import { useCan } from '@/lib/permissions';
 import { toast } from '@/stores/ui.store';
-import { useSave } from './useSave';
 
 /** Quick-look candidate drawer, shared by the talent pool and the job detail page. */
 export function CandidateDrawer({ id, onClose }: { id: string; onClose: () => void }) {
@@ -21,9 +22,10 @@ export function CandidateDrawer({ id, onClose }: { id: string; onClose: () => vo
   const qc = useQueryClient();
   const [draft, setDraft] = useState<{ subject: string; body: string } | null>(null);
 
-  const [, add] = useSave((job: string) => applicationsApi.add(id, job), {
-    ok: 'Added to pipeline',
+  const add = useApiMutation((job: string) => applicationsApi.add(id, job), {
     invalidate: [queryKeys.candidates.all, queryKeys.applications.all, queryKeys.jobs.all],
+    onSuccess: () => toast('Added to pipeline'),
+    onError: (e) => toast(errorMessage(e), 'error'),
   });
   const email = async (appId: string, kind: string) => {
     if (!kind) return;
@@ -117,26 +119,7 @@ export function CandidateDrawer({ id, onClose }: { id: string; onClose: () => vo
           </div>
           <div className="sec">
             <h4>Best-fit open jobs</h4>
-            {c.bestJobs.map((b) => (
-              <div key={b.job.id} className="who" style={{ padding: '9px 0', borderBottom: '1px solid var(--line2)' }}>
-                <ScoreRing score={b.score} size={40} />
-                <div style={{ flex: 1 }}>
-                  <b>{b.job.title}</b>
-                  <span>
-                    {b.job.client?.name}
-                    {b.notes.length ? ' · ' + b.notes[0] : ' · Strong fit'}
-                  </span>
-                </div>
-                {b.inPipeline ? (
-                  <span className="badge">In pipeline</span>
-                ) : (
-                  <button className="btn sm primary" onClick={() => add(b.job.id)}>
-                    <Plus size={14} />
-                    Add
-                  </button>
-                )}
-              </div>
-            ))}
+            <BestFitJobs jobs={c.bestJobs} onAdd={(job) => add.mutateAsync(job).then(() => true, () => false)} />
           </div>
           {c.applications.length > 0 && (
             <div className="sec">

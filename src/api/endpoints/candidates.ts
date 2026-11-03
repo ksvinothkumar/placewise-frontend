@@ -43,6 +43,7 @@ export interface CandidateJobRef {
   title: string;
   city?: string;
   client?: { id: string; name: string; contact?: string; email?: string; feePct?: number };
+  pipelineId?: string;
 }
 
 export interface CandidateApplication {

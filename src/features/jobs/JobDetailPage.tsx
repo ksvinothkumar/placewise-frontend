@@ -1,6 +1,6 @@
 import { Paginated } from '@/components/ui/Paginated';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Clock, Copy, MapPin, Plus, Sparkles, Trash2, Wallet } from 'lucide-react';
+import { ArrowLeft, Check, Clock, Copy, MapPin, Plus, Sparkles, Trash2, Wallet } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { applicationsApi } from '@/api/endpoints/applications';
@@ -29,6 +29,7 @@ export function JobDetailPage() {
   const [open, setOpen] = useState<string | null>(null);
   const [why, setWhy] = useState<{ id: string; name: string } | null>(null);
 
+  const inPipeline = new Set((j?.applications ?? []).map((a) => a.candidate.id));
   const refresh = [queryKeys.jobs.all, queryKeys.applications.all, queryKeys.candidates.all];
   const add = useApiMutation((candidate: string) => applicationsApi.add(candidate, id), {
     invalidate: refresh,
@@ -185,14 +186,22 @@ export function JobDetailPage() {
                             <Sparkles size={13} />
                             Why?
                           </button>{' '}
-                          <button
-                            className="btn sm primary"
-                            aria-label={`Add ${m.candidate.name}`}
-                            onClick={() => add.mutate(m.candidate.id)}
-                          >
-                            <Plus size={14} />
-                            Add
-                          </button>
+                          {inPipeline.has(m.candidate.id) ? (
+                            <button className="btn sm" disabled aria-label={`${m.candidate.name} added`}>
+                              <Check size={14} />
+                              Added
+                            </button>
+                          ) : (
+                            <button
+                              className="btn sm primary"
+                              aria-label={`Add ${m.candidate.name}`}
+                              disabled={add.isPending && add.variables === m.candidate.id}
+                              onClick={() => add.mutate(m.candidate.id)}
+                            >
+                              <Plus size={14} />
+                              Add
+                            </button>
+                          )}
                         </td>
                       </tr>
                     ))}
