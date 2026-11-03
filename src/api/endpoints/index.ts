@@ -20,3 +20,4 @@ export * from './registrations';
 export * from './notebook';
 export * from './careers';
 export * from './chat';
+export * from './blocked';

@@ -1,12 +1,13 @@
 import { Pager } from '@/components/ui/Paginated';
 import { useQueryClient } from '@tanstack/react-query';
-import { Bookmark, Copy, Download, FileText, FileUp, Plus, Search, X as XIcon } from 'lucide-react';
+import { Ban, Bookmark, Copy, Download, FileText, FileUp, Plus, Search, X as XIcon } from 'lucide-react';
 import { useEffect, useState, type ChangeEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { candidatesApi, savedSearchesApi, type Candidate, type CandidateFilters } from '@/api/endpoints/candidates';
 import { errorMessage } from '@/api/errors';
 import { useCandidateSkills, useCandidateTags, useCandidatePage, useSavedSearches } from '@/api/queries/candidates';
 import { queryKeys } from '@/api/queryKeys';
+import { BlockedModal } from '@/components/business/Blocked';
 import { BulkImport } from '@/components/business/BulkImport';
 import { DuplicatesModal } from '@/components/business/Duplicates';
 import { CandidateDrawer, CandidateForm, ImportResume } from '@/components/forms';
@@ -35,6 +36,7 @@ export function CandidatesPage() {
   const [dq, setDq] = useState('');
   const [dups, setDups] = useState(false);
   const [bulk, setBulk] = useState(false);
+  const [blocked, setBlocked] = useState(false);
   const [saveAs, setSaveAs] = useState<string | null>(null);
   const [applied, setApplied] = useState('');
   const [resume, setResume] = useState<Candidate | null>(null);
@@ -119,6 +121,10 @@ export function CandidatesPage() {
         <button className="btn" onClick={() => setDups(true)}>
           <Copy size={16} />
           Find duplicates
+        </button>
+        <button className="btn" onClick={() => setBlocked(true)}>
+          <Ban size={16} />
+          Blocked
         </button>
         <button className="btn" onClick={csv}>
           <Download size={16} />
@@ -269,6 +275,7 @@ export function CandidatesPage() {
       {resume && <ResumeModal c={resume} onClose={() => setResume(null)} />}
       {bulk && <BulkImport onClose={() => setBulk(false)} />}
       {dups && <DuplicatesModal onClose={() => setDups(false)} />}
+      {blocked && <BlockedModal onClose={() => setBlocked(false)} />}
       {saveAs !== null && (
         <Modal
           title="Save this search"

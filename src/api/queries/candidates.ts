@@ -1,4 +1,5 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { blockedApi } from '../endpoints/blocked';
 import { candidatesApi, savedSearchesApi, type CandidateFilters } from '../endpoints/candidates';
 import { tasksApi } from '../endpoints/tasks';
 import type { ApiError } from '../errors';
@@ -24,3 +25,4 @@ export const useResumeView = (id: string) =>
   });
 export const useCandidateTasks = (id: string) =>
   useQuery({ queryKey: [...queryKeys.tasks.all, 'candidate', id], queryFn: () => tasksApi.list({ candidate: id, status: 'open' }) });
+export const useBlocked = () => useQuery({ queryKey: [...k.all, 'blocked'], queryFn: blockedApi.list });

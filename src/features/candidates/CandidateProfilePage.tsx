@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import {
-  ArrowLeft, Briefcase, CalendarClock, Camera, Download, FileText, Link2, ListChecks, Mail, MapPin, MessageCircle, Pencil, Phone, Plus, Printer, Save, ShieldCheck, Trash2, Video,
+  ArrowLeft, Ban, Briefcase, CalendarClock, Camera, Download, FileText, Link2, ListChecks, Mail, MapPin, MessageCircle, Pencil, Phone, Plus, Printer, Save, ShieldCheck, Trash2, Video,
   type LucideIcon,
 } from 'lucide-react';
 import { useEffect, useState, type ReactNode } from 'react';
@@ -10,6 +10,7 @@ import { applicationsApi } from '@/api/endpoints/applications';
 import { candidatesApi } from '@/api/endpoints/candidates';
 import { errorMessage } from '@/api/errors';
 import { BestFitJobs } from '@/components/business/BestFitJobs';
+import { BlockDialog, useUnblock } from '@/components/business/Blocked';
 import { useApiMutation } from '@/api/hooks';
 import { useCandidate, useCandidateTasks } from '@/api/queries/candidates';
 import { queryKeys } from '@/api/queryKeys';
@@ -59,6 +60,8 @@ export function CandidateProfilePage() {
   const [mailForm, setMailForm] = useState(false);
   const [edit, setEdit] = useState(false);
   const [photo, setPhoto] = useState(false);
+  const [blockOpen, setBlockOpen] = useState(false);
+  const unblock = useUnblock();
   const [notes, setNotes] = useState('');
   useEffect(() => {
     if (c) setNotes(c.notes || '');
@@ -127,6 +130,24 @@ export function CandidateProfilePage() {
         Talent pool
       </Link>
 
+      {c.blocked && (
+        <div className="card" style={{ marginBottom: 14, borderColor: 'var(--bad)' }} role="alert">
+          <div className="card-b" style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+            <Ban size={18} color="var(--bad)" />
+            <div style={{ flex: 1, minWidth: 220 }}>
+              <b>Blocked from reapplying</b>
+              <div style={{ color: 'var(--text2)', fontSize: 13 }}>
+                {[c.blocked.reason, c.blocked.by && `by ${c.blocked.by}`].filter(Boolean).join(' · ') || 'No reason given'}
+              </div>
+            </div>
+            {canWrite && (
+              <button className="btn sm no-print" disabled={unblock.isPending} onClick={() => confirm(`Unblock ${c.email}?`) && unblock.mutate(c.blocked!.id)}>
+                Unblock
+              </button>
+            )}
+          </div>
+        </div>
+      )}
       <div className="card">
         <div className="card-b" style={{ display: 'flex', gap: 28, flexWrap: 'wrap', alignItems: 'flex-start' }}>
           <div style={{ position: 'relative' }}>
@@ -205,6 +226,12 @@ export function CandidateProfilePage() {
               <Download size={15} />
               Export data
             </button>
+            {canWrite && c.email && !c.blocked && (
+              <button className="btn" onClick={() => setBlockOpen(true)}>
+                <Ban size={15} />
+                Block
+              </button>
+            )}
             {canDelete && (
               <button className="btn danger" onClick={del}>
                 <Trash2 size={15} />
@@ -432,6 +459,7 @@ export function CandidateProfilePage() {
       {mailForm && <EmailComposer candidate={c} applications={c.applications} onClose={() => setMailForm(false)} />}
       {taskForm && <TaskForm candidate={c} onClose={() => setTaskForm(false)} />}
       {edit && <CandidateEdit c={c} onClose={() => setEdit(false)} />}
+      {blockOpen && <BlockDialog target={{ candidate: c.id, label: c.name }} onClose={() => setBlockOpen(false)} />}
       {photo && <PhotoEditor c={c} onClose={() => setPhoto(false)} onSaved={() => void qc.invalidateQueries({ queryKey: queryKeys.candidates.all })} />}
     </>
   );

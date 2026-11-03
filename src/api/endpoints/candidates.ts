@@ -69,6 +69,8 @@ export interface CandidateOffer {
 export interface CandidateDetail extends Candidate {
   applications: CandidateApplication[];
   bestJobs: { job: CandidateJobRef; score: number; notes: string[]; inPipeline: boolean }[];
+  /** Set when this candidate's email is on the blocklist: they can't be re-added or reapply. */
+  blocked?: { id: string; reason?: string; at?: string; by?: string } | null;
   offers?: CandidateOffer[];
   interviews?: { id: string; round: string; jobTitle: string; when: string; mode: string; interviewer: string }[];
 }
