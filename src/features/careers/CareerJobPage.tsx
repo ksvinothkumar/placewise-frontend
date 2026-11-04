@@ -1,11 +1,14 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Briefcase, CheckCircle2, Clock, Loader2, MapPin, UploadCloud } from 'lucide-react';
 import { useState, type ChangeEvent, type FormEvent } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import { careersApi } from '@/api/endpoints/careers';
 import { errorMessage } from '@/api/errors';
 import { queryKeys } from '@/api/queryKeys';
 import { ago } from './CareersPage';
+import { company } from './company';
+import { CHANNELS, jobLink, jobPostingJsonLd, shareHref, sourceOf } from './jobPosting';
+import { useHead } from './useHead';
 
 const MAX_RESUME = 5 * 1024 * 1024; // the API rejects bigger files
 const RESUME_EXT = /\.(pdf|docx|txt|rtf)$/i;
@@ -36,11 +39,19 @@ export function applyProblem(f: ApplyForm, file: File | null): string {
 
 export function CareerJobPage() {
   const { id = '' } = useParams();
+  const { search } = useLocation();
+  const source = sourceOf(search);
   const { data: job, error } = useQuery({ queryKey: queryKeys.careers.job(id), queryFn: () => careersApi.job(id), retry: false });
   const [f, setF] = useState<ApplyForm>({ name: '', email: '', phone: '', city: '', exp: '', message: '', consent: false, website: '' });
   const [file, setFile] = useState<File | null>(null);
   const [msg, setMsg] = useState('');
   const [done, setDone] = useState(false);
+  useHead({
+    title: job ? `${job.title} · ${job.city} · ${company.name}` : `Careers at ${company.name}`,
+    description: job ? `${job.title} in ${job.city}. ${job.description}`.slice(0, 155) : undefined,
+    jsonLd: job ? jobPostingJsonLd(job) : undefined,
+  });
+  const [copied, setCopied] = useState(false);
   const m = useMutation({ mutationFn: (fd: FormData) => careersApi.apply(id, fd) });
 
   const set = (k: keyof ApplyForm) => (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -52,6 +63,7 @@ export function CareerJobPage() {
     setMsg('');
     const fd = new FormData();
     Object.entries(f).forEach(([k, v]) => fd.append(k, String(v)));
+    if (source) fd.append('source', source);
     if (file) fd.append('resume', file);
     try {
       await m.mutateAsync(fd);
@@ -104,6 +116,26 @@ export function CareerJobPage() {
             <span>
               <Clock size={15} /> {ago(job.postedDays)}
             </span>
+          </div>
+          <div className="pub-share" aria-label="Share this role">
+            <span>Share</span>
+            {CHANNELS.map((c) => (
+              <a key={c.id} href={shareHref(c.id, job)} target="_blank" rel="noreferrer" className="btn sm">
+                {c.label}
+              </a>
+            ))}
+            <button
+              type="button"
+              className="btn sm"
+              onClick={() => {
+                void navigator.clipboard?.writeText(jobLink(job.id, 'copy')).then(() => {
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 2000);
+                });
+              }}
+            >
+              {copied ? 'Link copied' : 'Copy link'}
+            </button>
           </div>
           <h3 style={{ margin: '26px 0 8px' }}>About the role</h3>
           <div style={{ whiteSpace: 'pre-wrap', color: 'var(--text2)', lineHeight: 1.7 }}>{job.description || 'Our team will share full details when you apply.'}</div>

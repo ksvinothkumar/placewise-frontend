@@ -10,6 +10,9 @@ export interface CareerJob {
   expMax: number;
   skills: string[];
   postedDays: number;
+  /** ISO date the role opened */
+  postedAt?: string;
+  openings?: number;
   description?: string;
 }
 
