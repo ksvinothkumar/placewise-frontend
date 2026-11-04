@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { isApiError } from '@/api/errors';
 import { ToastHost } from '@/components/ui/Toast';
 import { connectSocket, disconnectSocket } from '@/realtime/socket';
@@ -49,8 +49,11 @@ export function Providers({ children }: { children: ReactNode }) {
   const [client] = useState(makeQueryClient);
   const status = useSessionStore((s) => s.status);
   // drop cached server data when the session ends so the next user never sees it
+  // Only when a signed-in session ends: a visitor who was never signed in (public careers page) has just started loading data.
+  const was = useRef(status);
   useEffect(() => {
-    if (status === 'anon') client.clear();
+    if (status === 'anon' && was.current === 'authed') client.clear();
+    was.current = status;
   }, [status, client]);
   return (
     <QueryClientProvider client={client}>
