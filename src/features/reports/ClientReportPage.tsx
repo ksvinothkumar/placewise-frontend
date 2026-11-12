@@ -84,10 +84,10 @@ export function ClientReportPage() {
           </div>
           <Sec title="Open roles">
             {r.jobs.length ? (
-              <Paginated items={r.jobs} render={(pageRows) => (
+              <Paginated items={r.jobs} render={(pageRows, from) => (
               <table className="table">
                 <thead>
-                  <tr>
+                  <tr><th className="sn">#</th>
                     <th>Role</th>
                     <th>Open</th>
                     <th>In pipeline</th>
@@ -98,8 +98,8 @@ export function ClientReportPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {pageRows.map((j) => (
-                    <tr key={j.id}>
+                  {pageRows.map((j, n) => (
+                    <tr key={j.id}><td className="sn">{from + n + 1}</td>
                       <td>
                         <b>{j.title}</b>
                       </td>

@@ -49,14 +49,14 @@ export function BranchesTab() {
       {isLoading && !data ? (
         <Skeleton rows={3} />
       ) : data?.length ? (
-        <Paginated items={data} render={(pageRows) => (
+        <Paginated items={data} render={(pageRows, from) => (
         <table className="table" style={{ marginTop: 12 }}>
           <thead>
-            <tr><th>Branch</th><th>City</th><th>People</th><th>Jobs</th><th /></tr>
+            <tr><th className="sn">#</th><th>Branch</th><th>City</th><th>People</th><th>Jobs</th><th /></tr>
           </thead>
           <tbody>
-            {pageRows.map((b) => (
-              <tr key={b.id}>
+            {pageRows.map((b, n) => (
+              <tr key={b.id}><td className="sn">{from + n + 1}</td>
                 <td><b>{b.name}</b>{b.code && <span className="badge" style={{ marginLeft: 8 }}>{b.code}</span>}</td>
                 <td>{b.city || '—'}</td>
                 <td>{b.users}</td>

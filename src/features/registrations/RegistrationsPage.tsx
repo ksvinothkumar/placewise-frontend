@@ -35,12 +35,12 @@ export function RegistrationsPage() {
         {isLoading && !data ? (
           <Skeleton rows={5} />
         ) : data?.items.length ? (
-          <Paginated items={data.items} render={(pageRows) => (
+          <Paginated items={data.items} render={(pageRows, from) => (
           <table className="table">
-            <thead><tr><th>Received</th><th>Workspace</th><th>Contact</th><th>Plan</th><th>Details</th><th>{status === 'pending' ? '' : 'Reviewed'}</th></tr></thead>
+            <thead><tr><th className="sn">#</th><th>Received</th><th>Workspace</th><th>Contact</th><th>Plan</th><th>Details</th><th>{status === 'pending' ? '' : 'Reviewed'}</th></tr></thead>
             <tbody>
-              {pageRows.map((r) => (
-                <tr key={r.id}>
+              {pageRows.map((r, n) => (
+                <tr key={r.id}><td className="sn">{from + n + 1}</td>
                   <td style={{ whiteSpace: 'nowrap', color: 'var(--text2)' }}>{fmtDT(r.createdAt)}</td>
                   <td>
                     <b>{r.workspaceName}</b>

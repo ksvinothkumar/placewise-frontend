@@ -101,10 +101,10 @@ export function ReportsPage() {
             CSV
           </button>
         </div>
-        <Paginated items={d.recruiters} render={(pageRows) => (
+        <Paginated items={d.recruiters} render={(pageRows, from) => (
         <table className="table" style={{ marginTop: 12 }}>
           <thead>
-            <tr>
+            <tr><th className="sn">#</th>
               <th>Recruiter</th>
               <th>Added</th>
               <th>Pipeline</th>
@@ -123,7 +123,7 @@ export function ReportsPage() {
           </thead>
           <tbody>
             {pageRows.map((r, i) => (
-              <tr key={r.id || 'none'} className="click" tabIndex={0} title="Click to see their candidates" onClick={() => setDrill({ kind: 'recruiter', arg: r.id || 'none' })} onKeyDown={(e) => { if (e.key === 'Enter') setDrill({ kind: 'recruiter', arg: r.id || 'none' }); }}>
+              <tr key={r.id || 'none'} className="click" tabIndex={0} title="Click to see their candidates" onClick={() => setDrill({ kind: 'recruiter', arg: r.id || 'none' })} onKeyDown={(e) => { if (e.key === 'Enter') setDrill({ kind: 'recruiter', arg: r.id || 'none' }); }}><td className="sn">{from + i + 1}</td>
                 <td>
                   <b>
                     {i === 0 && r.placements > 0 && '🏆 '}
@@ -184,7 +184,7 @@ export function ReportsPage() {
           </div>
           <table className="table" style={{ marginTop: 12 }}>
             <thead>
-              <tr>
+              <tr><th className="sn">#</th>
                 <th>Source</th>
                 <th>Candidates</th>
                 <th>In pipeline</th>
@@ -193,8 +193,8 @@ export function ReportsPage() {
               </tr>
             </thead>
             <tbody>
-              {d.sources.map((s) => (
-                <tr key={s.source} className="click" tabIndex={0} title="Click to see these candidates" onClick={() => setDrill({ kind: 'source', arg: s.source })} onKeyDown={(e) => { if (e.key === 'Enter') setDrill({ kind: 'source', arg: s.source }); }}>
+              {d.sources.map((s, n) => (
+                <tr key={s.source} className="click" tabIndex={0} title="Click to see these candidates" onClick={() => setDrill({ kind: 'source', arg: s.source })} onKeyDown={(e) => { if (e.key === 'Enter') setDrill({ kind: 'source', arg: s.source }); }}><td className="sn">{n + 1}</td>
                   <td>
                     <b>{s.source}</b>
                   </td>
@@ -226,8 +226,8 @@ export function ReportsPage() {
               </div>
               <table className="table" style={{ marginTop: 8 }}>
                 <tbody>
-                  {d.revenueByClient.map((c) => (
-                    <tr key={c.client}>
+                  {d.revenueByClient.map((c, n) => (
+                    <tr key={c.client}><td className="sn">{n + 1}</td>
                       <td>
                         <b>{c.client}</b>
                       </td>

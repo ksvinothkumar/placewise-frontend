@@ -57,10 +57,10 @@ export function AuditPage() {
           <Skeleton rows={8} />
         ) : data?.items?.length ? (
           <table className="table">
-            <thead><tr><th>When</th><th>User</th><th>Action</th><th>Area</th><th>Path</th><th>Browser</th><th>Location</th><th>Result</th></tr></thead>
+            <thead><tr><th className="sn">#</th><th>When</th><th>User</th><th>Action</th><th>Area</th><th>Path</th><th>Browser</th><th>Location</th><th>Result</th></tr></thead>
             <tbody>
-              {data.items.map((a) => (
-                <tr key={a.id}>
+              {data.items.map((a, n) => (
+                <tr key={a.id}><td className="sn">{(data.page - 1) * 50 + n + 1}</td>
                   <td style={{ whiteSpace: 'nowrap', color: 'var(--text2)' }}>{when(a.createdAt)}</td>
                   <td><b>{a.userName || '—'}</b> {a.role && <span className="badge" style={{ marginLeft: 4 }}>{roleLabel(a.role)}</span>}</td>
                   <td><code>{a.action}</code></td>

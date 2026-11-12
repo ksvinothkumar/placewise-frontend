@@ -93,8 +93,8 @@ export function DashboardPage() {
           {d.atRisk.length ? (
             <table className="table" style={{ marginTop: 12 }}>
               <tbody>
-                {d.atRisk.map((r) => (
-                  <tr key={r.id} className="click" onClick={() => nav('/jobs/' + r.id)}>
+                {d.atRisk.map((r, n) => (
+                  <tr key={r.id} className="click" onClick={() => nav('/jobs/' + r.id)}><td className="sn">{n + 1}</td>
                     <td>
                       <b>{r.title}</b>
                       <div style={{ color: 'var(--muted)', fontSize: 12.5 }}>{r.client}</div>

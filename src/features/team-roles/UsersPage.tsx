@@ -96,19 +96,19 @@ export function UsersPage() {
           <Skeleton />
         ) : (
           <div style={{ overflowX: 'auto' }}>
-            <Paginated items={list} render={(pageRows) => (
+            <Paginated items={list} render={(pageRows, from) => (
             <table className="table">
               <thead>
-                <tr><th>Member</th><th>Email</th><th>Role</th><th>Reporting manager</th><th>Status</th><th>Joined</th><th style={{ width: 48 }} /></tr>
+                <tr><th className="sn">#</th><th>Member</th><th>Email</th><th>Role</th><th>Reporting manager</th><th>Status</th><th>Joined</th><th style={{ width: 48 }} /></tr>
               </thead>
               <tbody>
-                {pageRows.map((u) => {
+                {pageRows.map((u, n) => {
                   const isMe = u.id === me?.id;
                   const blocked = reportsOf(u.id, all);
                   const options = all.filter((m) => m.id !== u.id && m.active !== false && m.role !== 'client' && !blocked.has(m.id));
                   const roleKnown = staffRoles.some((r) => r.key === u.role);
                   return (
-                    <tr key={u.id}>
+                    <tr key={u.id}><td className="sn">{from + n + 1}</td>
                       <td>
                         <div className="who">
                           <CandidatePhoto c={u} size={38} path={isMe ? '/auth/photo' : undefined} />

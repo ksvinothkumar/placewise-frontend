@@ -88,10 +88,10 @@ export function OrgChartPage() {
       ) : (
         <div className="card" style={{ overflowX: 'auto' }}>
           <table className="table">
-            <thead><tr><th>Person</th><th>Role</th><th>Reports to</th><th style={{ width: 120 }}>Direct reports</th></tr></thead>
+            <thead><tr><th className="sn">#</th><th>Person</th><th>Role</th><th>Reports to</th><th style={{ width: 120 }}>Direct reports</th></tr></thead>
             <tbody>
-              {rows.map(({ node, depth }) => (
-                <tr key={node.m.id}>
+              {rows.map(({ node, depth }, n) => (
+                <tr key={node.m.id}><td className="sn">{n + 1}</td>
                   <td>
                     <div className="who" style={{ paddingLeft: depth * 24 }}>
                       <CandidatePhoto c={node.m} size={32} path={node.m.id === me?.id ? '/auth/photo' : undefined} />

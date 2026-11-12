@@ -37,8 +37,8 @@ export function Pager({ total, page, size, onPage, onSize }: PagerProps) {
 
 interface Props<T> {
   items: T[];
-  /** Renders the table for the current page of rows. */
-  render: (rows: T[]) => ReactNode;
+  /** Renders the table for the current page of rows; `from` is how many rows come before this page (for serial numbers). */
+  render: (rows: T[], from: number) => ReactNode;
   initialSize?: number;
 }
 
@@ -54,7 +54,7 @@ export function Paginated<T>({ items, render, initialSize = 10 }: Props<T>) {
   const from = (current - 1) * size;
   return (
     <>
-      {render(items.slice(from, from + size))}
+      {render(items.slice(from, from + size), from)}
       <Pager total={items.length} page={current} size={size} onPage={setPage} onSize={(n) => { setSize(n); setPage(1); }} />
     </>
   );

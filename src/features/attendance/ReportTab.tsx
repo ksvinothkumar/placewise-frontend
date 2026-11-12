@@ -29,12 +29,12 @@ export function ReportTab() {
       {!data ? (
         <Skeleton />
       ) : (
-        <Paginated items={data.rows} render={(pageRows) => (
+        <Paginated items={data.rows} render={(pageRows, from) => (
         <table className="table">
-          <thead><tr><th>Person</th><th>Present</th><th>Hours</th><th>Leave</th><th>Absent</th><th>Missed check-outs</th></tr></thead>
+          <thead><tr><th className="sn">#</th><th>Person</th><th>Present</th><th>Hours</th><th>Leave</th><th>Absent</th><th>Missed check-outs</th></tr></thead>
           <tbody>
-            {pageRows.map((r) => (
-              <tr key={r.id}>
+            {pageRows.map((r, n) => (
+              <tr key={r.id}><td className="sn">{from + n + 1}</td>
                 <td><b>{r.name}</b></td>
                 <td>{r.present}</td>
                 <td>{r.hours}</td>

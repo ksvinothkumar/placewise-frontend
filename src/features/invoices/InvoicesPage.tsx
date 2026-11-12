@@ -127,10 +127,10 @@ export function InvoicesPage() {
         ) : data?.length ? (
           <Paginated
             items={data}
-            render={(pageRows) => (
+            render={(pageRows, from) => (
               <table className="table">
                 <thead>
-                  <tr>
+                  <tr><th className="sn">#</th>
                     <th>Invoice</th>
                     <th>Client</th>
                     <th>Placement</th>
@@ -142,8 +142,8 @@ export function InvoicesPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {pageRows.map((i) => (
-                    <tr key={i.id} className="click" onClick={() => nav('/invoices/' + i.id)}>
+                  {pageRows.map((i, n) => (
+                    <tr key={i.id} className="click" onClick={() => nav('/invoices/' + i.id)}><td className="sn">{from + n + 1}</td>
                       <td>
                         <b>{i.number}</b>
                         {i.docType === 'proforma' && (

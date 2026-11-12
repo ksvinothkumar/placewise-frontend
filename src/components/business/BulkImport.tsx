@@ -111,17 +111,17 @@ export function BulkImport({ onClose }: { onClose: () => void }) {
             {res.duplicates > 0 && <span className="badge warn">{res.duplicates} already in the pool</span>}
             {res.failed > 0 && <span className="badge bad">{res.failed} could not be read</span>}
           </div>
-          <Paginated items={res.results} render={(pageRows) => (
+          <Paginated items={res.results} render={(pageRows, from) => (
           <table className="table">
             <thead>
-              <tr>
+              <tr><th className="sn">#</th>
                 <th>File</th>
                 <th>Result</th>
               </tr>
             </thead>
             <tbody>
               {pageRows.map((r, i) => (
-                <tr key={i}>
+                <tr key={i}><td className="sn">{from + i + 1}</td>
                   <td>{r.file}</td>
                   <td>
                     {r.status === 'created' && r.candidate ? (

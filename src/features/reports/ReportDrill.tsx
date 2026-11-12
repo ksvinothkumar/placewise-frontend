@@ -35,12 +35,12 @@ export function ReportDrill({ target, from, onClose }: { target: DrillTarget; fr
       {error && <Empty title="Could not load these records" sub={errorMessage(error)} />}
       {data && !data.rows.length && <Empty title="Nothing in this period" sub="Try a longer date range." />}
       {data && data.rows.length > 0 && (
-        <Paginated items={data.rows} render={(pageRows) => (
+        <Paginated items={data.rows} render={(pageRows, from) => (
         <table className="table">
-          <thead><tr>{data.columns.map((c) => <th key={c.label}>{c.label}</th>)}<th /></tr></thead>
+          <thead><tr><th className="sn">#</th>{data.columns.map((c) => <th key={c.label}>{c.label}</th>)}<th /></tr></thead>
           <tbody>
             {pageRows.map((r, i) => (
-              <tr key={i} className={r.go ? 'click' : undefined} onClick={r.go ? () => nav(r.go!) : undefined}>
+              <tr key={i} className={r.go ? 'click' : undefined} onClick={r.go ? () => nav(r.go!) : undefined}><td className="sn">{from + i + 1}</td>
                 {r.cells.map((v, j) => <td key={j}>{j === 0 ? <b>{cell(v, data.columns[j]!.type)}</b> : cell(v, data.columns[j]!.type)}</td>)}
                 <td>{r.go && <ExternalLink size={14} color="var(--muted)" aria-label="Open" />}</td>
               </tr>

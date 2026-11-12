@@ -84,10 +84,10 @@ export function JobsPage() {
         {isLoading ? (
           <Skeleton />
         ) : list.length ? (
-          <Paginated items={list} render={(pageRows) => (
+          <Paginated items={list} render={(pageRows, from) => (
           <table className="table">
             <thead>
-              <tr>
+              <tr><th className="sn">#</th>
                 <th>Role</th>
                 <th>Client</th>
                 <th>Location</th>
@@ -100,8 +100,8 @@ export function JobsPage() {
               </tr>
             </thead>
             <tbody>
-              {pageRows.map((j) => (
-                <tr key={j.id} className="click" onClick={() => nav('/jobs/' + j.id)}>
+              {pageRows.map((j, n) => (
+                <tr key={j.id} className="click" onClick={() => nav('/jobs/' + j.id)}><td className="sn">{from + n + 1}</td>
                   <td>
                     <b>{j.title}</b>
                     <div style={{ color: 'var(--muted)', fontSize: 12.5 }}>

@@ -211,3 +211,4 @@ code{font:12.5px ui-monospace,Menlo,monospace;background:var(--surface2);border:
 .pub-filters{display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap;margin-top:14px}.pub-filters select{border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:7px 10px}.pub-toggle{display:inline-flex;gap:6px;align-items:center;font-size:14px;color:var(--text2);cursor:pointer}.pub-clear{border:0;background:none;color:var(--brand);font-weight:600;cursor:pointer}
 .pub-about{color:var(--text2);line-height:1.7;margin:0 0 10px;white-space:pre-wrap}.pub-about a{color:var(--brand)}
 .pub-share{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:14px}.pub-share span{color:var(--muted);font-size:13px;margin-right:2px}
+.table th.sn,.table td.sn{width:44px;color:var(--muted);font-variant-numeric:tabular-nums;text-align:right;padding-right:6px}

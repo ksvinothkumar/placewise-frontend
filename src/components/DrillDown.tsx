@@ -189,18 +189,18 @@ export default function DrillDown({ kind, arg, onClose }: { kind: DrillKind; arg
         <Empty title="Nothing here yet" sub="No records match this metric." />
       ) : (
         <>
-          <Paginated items={d.rows} render={(pageRows) => (
+          <Paginated items={d.rows} render={(pageRows, from) => (
           <table className="table" style={{ marginTop: -4 }}>
             <thead>
-              <tr>
+              <tr><th className="sn">#</th>
                 {d.cols.map(([h]) => (
                   <th key={h}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {pageRows.map((r) => (
-                <tr key={r.key} className="click" onClick={() => go(r.go)}>
+              {pageRows.map((r, n) => (
+                <tr key={r.key} className="click" onClick={() => go(r.go)}><td className="sn">{from + n + 1}</td>
                   {d.cols.map(([h, f]) => (
                     <td key={h}>{f(r as never)}</td>
                   ))}

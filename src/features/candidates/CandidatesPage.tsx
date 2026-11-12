@@ -202,7 +202,7 @@ export function CandidatesPage() {
           <>
           <table className="table">
             <thead>
-              <tr>
+              <tr><th className="sn">#</th>
                 <th>Candidate</th>
                 <th>City</th>
                 <th>Experience</th>
@@ -213,8 +213,8 @@ export function CandidatesPage() {
               </tr>
             </thead>
             <tbody>
-              {data.map((c) => (
-                <tr key={c.id} className="click" onClick={() => setOpen(c.id)}>
+              {data.map((c, n) => (
+                <tr key={c.id} className="click" onClick={() => setOpen(c.id)}><td className="sn">{(page - 1) * size + n + 1}</td>
                   <td>
                     <div className="who">
                       <CandidatePhoto c={c} size={36} />

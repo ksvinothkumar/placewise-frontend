@@ -47,11 +47,11 @@ export function ApprovalsTab() {
         {!data ? (
           <Skeleton rows={3} />
         ) : pending.length ? (
-          <Paginated items={pending} render={(pageRows) => (
+          <Paginated items={pending} render={(pageRows, from) => (
           <table className="table" style={{ marginTop: 10 }}>
             <tbody>
-              {pageRows.map((x) => (
-                <tr key={x.id}>
+              {pageRows.map((x, n) => (
+                <tr key={x.id}><td className="sn">{from + n + 1}</td>
                   <td><b>{who(x.user)?.name}</b><div style={{ fontSize: 12.5, color: 'var(--muted)' }}>{x.typeName}</div></td>
                   <td>{range(x)}<div style={{ fontSize: 12.5, color: 'var(--muted)' }}>{x.days} day{x.days === 1 ? '' : 's'}</div></td>
                   <td style={{ color: 'var(--text2)', maxWidth: 260 }}>{x.reason || '—'}</td>
@@ -77,11 +77,11 @@ export function ApprovalsTab() {
       {done.length > 0 && (
         <div className="card">
           <div className="card-h"><h3>Recent decisions</h3></div>
-          <Paginated items={done} render={(pageRows) => (
+          <Paginated items={done} render={(pageRows, from) => (
           <table className="table" style={{ marginTop: 10 }}>
             <tbody>
-              {pageRows.map((x) => (
-                <tr key={x.id}>
+              {pageRows.map((x, n) => (
+                <tr key={x.id}><td className="sn">{from + n + 1}</td>
                   <td><b>{who(x.user)?.name}</b></td>
                   <td>{x.typeName}</td>
                   <td>{range(x)}</td>

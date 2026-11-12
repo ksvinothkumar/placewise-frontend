@@ -47,12 +47,12 @@ export function TeamTab() {
       {!data ? (
         <Skeleton />
       ) : (
-        <Paginated items={data.rows} render={(pageRows) => (
+        <Paginated items={data.rows} render={(pageRows, from) => (
         <table className="table">
-          <thead><tr><th>Person</th><th>Status</th><th>In</th><th>Out</th><th>Worked</th><th /></tr></thead>
+          <thead><tr><th className="sn">#</th><th>Person</th><th>Status</th><th>In</th><th>Out</th><th>Worked</th><th /></tr></thead>
           <tbody>
-            {pageRows.map((r) => (
-              <tr key={r.id}>
+            {pageRows.map((r, n) => (
+              <tr key={r.id}><td className="sn">{from + n + 1}</td>
                 <td><b>{r.name}</b><div style={{ fontSize: 12.5, color: 'var(--muted)' }}>{roleLabel(r.role)}{r.branch ? ' · ' + r.branch : ''}</div></td>
                 <td>
                   <span className={'badge ' + TONE[r.status][0]}>

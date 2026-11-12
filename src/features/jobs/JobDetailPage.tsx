@@ -134,10 +134,10 @@ export function JobDetailPage() {
           {j.matches.length ? (
             <Paginated
               items={j.matches}
-              render={(pageRows) => (
+              render={(pageRows, from) => (
                 <table className="table" style={{ marginTop: 12 }}>
                   <thead>
-                    <tr>
+                    <tr><th className="sn">#</th>
                       <th>Candidate</th>
                       <th>Score</th>
                       <th>Skills</th>
@@ -145,8 +145,8 @@ export function JobDetailPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {pageRows.map((m) => (
-                      <tr key={m.candidate.id}>
+                    {pageRows.map((m, n) => (
+                      <tr key={m.candidate.id}><td className="sn">{from + n + 1}</td>
                         <td>
                           <div
                             className="who"

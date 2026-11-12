@@ -92,17 +92,17 @@ export function ClientProfilePage() {
             <small>{c.jobs?.length ?? 0} total</small>
           </div>
           {c.jobs?.length ? (
-            <Paginated items={c.jobs} render={(pageRows) => (
+            <Paginated items={c.jobs} render={(pageRows, from) => (
             <table className="table">
               <thead>
-                <tr>
+                <tr><th className="sn">#</th>
                   <th>Title</th>
                   <th>Status</th>
                 </tr>
               </thead>
               <tbody>
-                {pageRows.map((j) => (
-                  <tr key={j.id}>
+                {pageRows.map((j, n) => (
+                  <tr key={j.id}><td className="sn">{from + n + 1}</td>
                     <td>
                       <Link to={'/jobs/' + j.id}>
                         <b>{j.title}</b>

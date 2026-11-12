@@ -168,10 +168,10 @@ export function CrmPage() {
             comps.isLoading ? (
               <Skeleton />
             ) : list.length ? (
-              <Paginated items={list} render={(pageRows) => (
+              <Paginated items={list} render={(pageRows, from) => (
               <table className="table">
                 <thead>
-                  <tr>
+                  <tr><th className="sn">#</th>
                     <th>Company</th>
                     <th>Stage</th>
                     <th>Owner</th>
@@ -181,8 +181,8 @@ export function CrmPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {pageRows.map((c) => (
-                    <tr key={c.id} className="click" onClick={() => nav('/crm/companies/' + c.id)}>
+                  {pageRows.map((c, n) => (
+                    <tr key={c.id} className="click" onClick={() => nav('/crm/companies/' + c.id)}><td className="sn">{from + n + 1}</td>
                       <td>
                         <b>{c.name}</b>
                         <div style={{ fontSize: 12.5, color: 'var(--muted)' }}>{[c.industry, c.city].filter(Boolean).join(' · ')}</div>
@@ -208,10 +208,10 @@ export function CrmPage() {
           ) : contacts.isLoading ? (
             <Skeleton />
           ) : contacts.data?.length ? (
-            <Paginated items={contacts.data} render={(pageRows) => (
+            <Paginated items={contacts.data} render={(pageRows, from) => (
             <table className="table">
               <thead>
-                <tr>
+                <tr><th className="sn">#</th>
                   <th>Contact</th>
                   <th>Company</th>
                   <th>Stage</th>
@@ -221,8 +221,8 @@ export function CrmPage() {
                 </tr>
               </thead>
               <tbody>
-                {pageRows.map((c) => (
-                  <tr key={c.id}>
+                {pageRows.map((c, n) => (
+                  <tr key={c.id}><td className="sn">{from + n + 1}</td>
                     <td>
                       <div className="who">
                         <Avatar name={c.name} size={34} />
